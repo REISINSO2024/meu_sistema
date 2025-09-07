@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Filtro por Bairro (JSON)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    select {
+      padding: 5px;
+      margin-bottom: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h1>Selecione um Bairro</h1>
+  <select id="bairroSelect" onchange="filtrarPorBairro()">
+    <option value="">-- Escolha um bairro --</option>
+  </select>
+
+  <table id="tabela">
+    <thead>
+      <tr>
+        <th>BAIRRO</th>
+        <th>CÓDIGO</th>
+        <th>ANO</th>
+        <th>LIRA 1 QT</th>
+        <th>LIRA 2 QT</th>
+        <th>LIRA 3 QT</th>
+        <th>LIRA 4 QT</th>
+        <th>IIP 1 LIRAa</th>
+        <th>IIP 2 LIRAa</th>
+        <th>IIP 3 LIRAa</th>
+        <th>IIP 4 LIRAa</th>
+      </tr>
+    </thead>
+    <tbody id="tabela-dados"></tbody>
+  </table>
+
+  <script>
+    const url = 'https://spreadsheets.google.com/feeds/list/1UCXA6OSjfmoHWPp_OUMIZpHHWKK7eL-Ywqg-yLsMOFs/1/public/values?alt=json';
+    let dados = [];
+
+    fetch(url)
+      .then(response => response.json())
+      .then(json => {
+        dados = json.feed.entry;
+
+        const bairros = [...new Set(dados.map(item => item.gsx$bairro.$t.trim()))];
+        const select = document.getElementById('bairroSelect');
+
+        bairros.forEach(bairro => {
+          const option = document.createElement('option');
+          option.value = bairro;
+          option.textContent = bairro;
+          select.appendChild(option);
+        });
+      });
+
+    function filtrarPorBairro() {
+      const bairroSelecionado = document.getElementById('bairroSelect').value;
+      const tabela = document.getElementById('tabela-dados');
+      tabela.innerHTML = '';
+
+      const filtrados = dados.filter(item => item.gsx$bairro.$t.trim() === bairroSelecionado);
+
+      filtrados.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.gsx$bairro.$t}</td>
+          <td>${item.gsx$codigo.$t}</td>
+          <td>${item.gsx$ano.$t}</td>
+          <td>${item.gsx$lira1qt.$t}</td>
+          <td>${item.gsx$lira2qt.$t}</td>
+          <td>${item.gsx$lira3qt.$t}</td>
+          <td>${item.gsx$lira4qt.$t}</td>
+          <td>${item.gsx$iip1liraa.$t}</td>
+          <td>${item.gsx$iip2liraa.$t}</td>
+          <td>${item.gsx$iip3liraa.$t}</td>
+          <td>${item.gsx$iip4liraa.$t}</td>
+        `;
+        tabela.appendChild(tr);
+      });
+    }
+  </script>
+</body>
+</html>
