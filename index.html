@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Filtro por Bairro (JSON)</title>
+  <title>Meu Sistema - Filtro por Bairro</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -27,7 +27,7 @@
   </style>
 </head>
 <body>
-  <h1>Selecione um Bairro</h1>
+  <h1>Meu Sistema - Selecione um Bairro</h1>
   <select id="bairroSelect" onchange="filtrarPorBairro()">
     <option value="">-- Escolha um bairro --</option>
   </select>
@@ -52,22 +52,31 @@
   </table>
 
   <script>
-   const url = 'https://spreadsheets.google.com/feeds/list/1UCXA6OSjfmoHWPp_OUMIZpHHWKK7eL-Ywqg-yLsMOFs/2/public/values?alt=json';
+    const url = 'https://docs.google.com/spreadsheets/d/1UCXA6OSjfmoHWPp_OUMIZpHHWKK7eL-Ywqg-yLsMOFs/export?format=csv&gid=1242024225';
     let dados = [];
 
     fetch(url)
-      .then(response => response.json())
-      .then(json => {
-        dados = json.feed.entry;
+      .then(response => response.text())
+      .then(csv => {
+        const linhas = csv.split('\n').map(l => l.split(','));
+        const cabecalho = linhas[0];
+        dados = linhas.slice(1).map(linha => {
+          const obj = {};
+          cabecalho.forEach((coluna, i) => {
+            obj[coluna.trim()] = linha[i]?.trim();
+          });
+          return obj;
+        });
 
-        const bairros = [...new Set(dados.map(item => item.gsx$bairro.$t.trim()))];
+        const bairros = [...new Set(dados.map(item => item['BAIRRO']))];
         const select = document.getElementById('bairroSelect');
-
         bairros.forEach(bairro => {
-          const option = document.createElement('option');
-          option.value = bairro;
-          option.textContent = bairro;
-          select.appendChild(option);
+          if (bairro) {
+            const option = document.createElement('option');
+            option.value = bairro;
+            option.textContent = bairro;
+            select.appendChild(option);
+          }
         });
       });
 
@@ -76,22 +85,22 @@
       const tabela = document.getElementById('tabela-dados');
       tabela.innerHTML = '';
 
-      const filtrados = dados.filter(item => item.gsx$bairro.$t.trim() === bairroSelecionado);
+      const filtrados = dados.filter(item => item['BAIRRO'] === bairroSelecionado);
 
       filtrados.forEach(item => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${item.gsx$bairro.$t}</td>
-          <td>${item.gsx$codigo.$t}</td>
-          <td>${item.gsx$ano.$t}</td>
-          <td>${item.gsx$lira1qt.$t}</td>
-          <td>${item.gsx$lira2qt.$t}</td>
-          <td>${item.gsx$lira3qt.$t}</td>
-          <td>${item.gsx$lira4qt.$t}</td>
-          <td>${item.gsx$iip1liraa.$t}</td>
-          <td>${item.gsx$iip2liraa.$t}</td>
-          <td>${item.gsx$iip3liraa.$t}</td>
-          <td>${item.gsx$iip4liraa.$t}</td>
+          <td>${item['BAIRRO']}</td>
+          <td>${item['CÓDIGO']}</td>
+          <td>${item['ANO']}</td>
+          <td>${item['LIRA 1 QT']}</td>
+          <td>${item['LIRA 2 QT']}</td>
+          <td>${item['LIRA 3 QT']}</td>
+          <td>${item['LIRA 4 QT']}</td>
+          <td>${item['IIP 1 LIRAa']}</td>
+          <td>${item['IIP 2 LIRAa']}</td>
+          <td>${item['IIP 3 LIRAa']}</td>
+          <td>${item['IIP 4 LIRAa']}</td>
         `;
         tabela.appendChild(tr);
       });
