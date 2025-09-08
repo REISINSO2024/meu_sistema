@@ -2,17 +2,26 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Meu Sistema - Filtro por Bairro</title>
+  <title>Sistema - Meus Bairros</title>
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="style.css">
   <script defer src="script.js"></script>
 </head>
 <body>
-  <h1>Meu Sistema - Selecione um Bairro</h1>
+  <h1>Sistema de Análise - Meus Bairros</h1>
+
+  <!-- Seletor de planilha (caso queira expandir no futuro) -->
+  <select id="planilhaSelect" onchange="carregarPlanilha()">
+    <option value="meusBairros">Meus Bairros</option>
+    <!-- outras planilhas podem ser adicionadas aqui -->
+  </select>
+
+  <!-- Filtro por bairro -->
   <select id="bairroSelect" onchange="filtrarPorBairro()">
     <option value="">-- Escolha um bairro --</option>
   </select>
 
+  <!-- Tabela de dados -->
   <table id="tabela">
     <thead>
       <tr>

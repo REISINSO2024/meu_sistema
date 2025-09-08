@@ -1,3 +1,12 @@
+const planilhas = {
+  meusBairros: 'https://docs.google.com/spreadsheets/d/1esxkfWErlA1v2UNqrPOC-puN3IZ_7YaC/export?format=csv&gid=1032123068'
+};
+
+function carregarPlanilha() {
+  const tipo = document.getElementById('planilhaSelect').value;
+  const url = planilhas[tipo];
+  fetchPlanilha(url);
+}
 const url = 'https://docs.google.com/spreadsheets/d/1UCXA6OSjfmoHWPp_OUMIZpHHWKK7eL-Ywqg-yLsMOFs/export?format=csv&gid=1242024225';
 let dados = [];
 
@@ -51,3 +60,6 @@ function filtrarPorBairro() {
     tabela.appendChild(tr);
   });
 }
+window.onload = () => {
+  fetchPlanilha(planilhas.meusBairros);
+};
