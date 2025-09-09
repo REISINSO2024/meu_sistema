@@ -74,7 +74,8 @@ function filtrarPorBairro() {
   });
 }
 
-// Carrega a planilha "Meus Bairros" ao iniciar
+
+// 2. Depois, chamar no window.onload
 window.onload = () => {
   fetchPlanilha(planilhas.meusBairros);
 };
