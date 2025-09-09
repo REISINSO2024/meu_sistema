@@ -11,11 +11,14 @@
   <h1>Sistema de Análise</h1>
 
   <!-- Seletor de planilhas -->
-  <label for="planilhaSelect">Escolha a planilha:</label>
-  <select id="planilhaSelect" onchange="carregarPlanilha()">
-    <option value="meusBairros">Meus Bairros</option>
-    <option value="indicadores">Indicadores</option>
-  </select>
+<label for="planilhaSelect">Escolha a planilha:</label>
+<select id="planilhaSelect" onchange="carregarPlanilha()">
+  <option value="meusBairros">Meus Bairros</option>
+  <option value="indicadores">Indicadores</option>
+  <option value="aba1">Aba 1</option>
+  <option value="aba2">Aba 2</option>
+  <option value="aba3">Aba 3</option>
+</select>
 
   <!-- Filtro por bairro (usado apenas por "Meus Bairros") -->
   <label for="bairroSelect">Filtrar por bairro:</label>
@@ -29,4 +32,5 @@
     <tbody id="tabela-dados"></tbody>
   </table>
 </body>
+
 </html>
