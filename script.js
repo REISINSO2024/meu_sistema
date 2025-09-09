@@ -1,7 +1,10 @@
-// Mapeamento das planilhas disponíveis e URLs
+// Mapeamento das planilhas e abas disponíveis
 const planilhas = {
   meusBairros: 'https://docs.google.com/spreadsheets/d/1Uvteq5WLaW_SWD0V7OuV81pQIM0naKjaa0Gu3BFM3rY/export?format=csv&gid=1032123068',
-  indicadores: 'https://docs.google.com/spreadsheets/d/1UCXA6OSjfmoHWPp_OUMIZpHHWKK7eL-Ywqg-yLsMOFs/export?format=csv&gid=1242024225'
+  indicadores: 'https://docs.google.com/spreadsheets/d/1UCXA6OSjfmoHWPp_OUMIZpHHWKK7eL-Ywqg-yLsMOFs/export?format=csv&gid=1242024225',
+  aba1: 'https://docs.google.com/spreadsheets/d/1I837qyKBeGs7EtNtfrmC7fhxvFC1VFVBh0fxw2lh4Mc/export?format=csv&gid=1658847410',
+  aba2: 'https://docs.google.com/spreadsheets/d/1I837qyKBeGs7EtNtfrmC7fhxvFC1VFVBh0fxw2lh4Mc/export?format=csv&gid=1058423129',
+  aba3: 'https://docs.google.com/spreadsheets/d/1I837qyKBeGs7EtNtfrmC7fhxvFC1VFVBh0fxw2lh4Mc/export?format=csv&gid=1243232255'
 };
 
 // Variáveis para elementos do DOM
@@ -11,7 +14,7 @@ const tabelaDados = document.getElementById('tabela-dados');
 const tabelaCabecalho = document.getElementById('tabela-cabecalho');
 
 let dados = [];
-let cabecalho = []; // Armazena o cabeçalho da planilha original
+let cabecalho = [];
 
 // Função principal para carregar os dados da planilha
 async function carregarPlanilha() {
@@ -38,7 +41,6 @@ async function carregarPlanilha() {
 // Processa o texto CSV e armazena os dados
 function processarCSV(csv, tipo) {
   const linhas = csv.split('\n').map(l => l.split(','));
-  // Pega o cabeçalho e garante que ele seja a referência
   cabecalho = linhas[0].map(col => col.trim()); 
   dados = linhas.slice(1).map(linha => {
     const obj = {};
@@ -48,13 +50,13 @@ function processarCSV(csv, tipo) {
     return obj;
   });
 
-  // Renderiza o cabeçalho correto antes de exibir os dados
   renderizarCabecalho(cabecalho);
 
   if (tipo === 'meusBairros') {
     configurarMeusBairros();
   } else {
-    configurarIndicadores();
+    // Para todas as outras planilhas, exibe a tabela completa e esconde o filtro
+    configurarGeral();
   }
 }
 
@@ -74,8 +76,8 @@ function configurarMeusBairros() {
   filtrarPorBairro();
 }
 
-// Configura a interface e exibe dados para a planilha "Indicadores"
-function configurarIndicadores() {
+// Configuração geral para outras planilhas
+function configurarGeral() {
   bairroSelect.style.display = 'none';
   renderizarDados(dados);
 }
@@ -95,8 +97,6 @@ function renderizarCabecalho(cabecalhoArray) {
 // Renderiza os dados na tabela
 function renderizarDados(items) {
   tabelaDados.innerHTML = items.map(item => {
-    // Agora, usa a variável 'cabecalho' que foi definida na função processarCSV.
-    // Isso garante que a ordem das colunas seja a mesma do cabeçalho original.
     const colunas = cabecalho.map(key => item[key]);
     return `<tr>${colunas.map(col => `<td>${col}</td>`).join('')}</tr>`;
   }).join('');
@@ -107,3 +107,4 @@ document.addEventListener('DOMContentLoaded', () => {
   planilhaSelect.addEventListener('change', carregarPlanilha);
   carregarPlanilha();
 });
+
