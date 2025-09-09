@@ -38,15 +38,32 @@ async function carregarPlanilha() {
   }
 }
 
-// Processa o texto CSV e armazena os dados
+// Processa o texto CSV e armazena os dados de forma robusta
 function processarCSV(csv, tipo) {
-  const linhas = csv.split('\n').map(l => l.split(','));
-  cabecalho = linhas[0].map(col => col.trim()); 
+  // Ignora linhas vazias no final
+  const linhas = csv.split('\n').filter(linha => linha.trim() !== '');
+  
+  // Se não houver dados, limpa a tabela e sai da função
+  if (linhas.length <= 1) {
+    tabelaCabecalho.innerHTML = '';
+    tabelaDados.innerHTML = '<tr><td colspan="100%">Não há dados para exibir.</td></tr>';
+    return;
+  }
+
+  // Pega o cabeçalho e garante que ele seja a referência
+  cabecalho = linhas[0].split(',').map(col => col.trim().replace(/"/g, ''));
+  
   dados = linhas.slice(1).map(linha => {
+    // Usa uma regex para dividir as colunas, lidando com vírgulas dentro de aspas
+    const colunas = linha.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+    
     const obj = {};
-    cabecalho.forEach((coluna, i) => {
-      obj[coluna] = linha[i] ? linha[i].trim() : '';
-    });
+    if (colunas) {
+      cabecalho.forEach((coluna, i) => {
+        // Remove aspas e espaços extras
+        obj[coluna] = colunas[i] ? colunas[i].trim().replace(/"/g, '') : '';
+      });
+    }
     return obj;
   });
 
@@ -55,7 +72,6 @@ function processarCSV(csv, tipo) {
   if (tipo === 'meusBairros') {
     configurarMeusBairros();
   } else {
-    // Para todas as outras planilhas, exibe a tabela completa e esconde o filtro
     configurarGeral();
   }
 }
