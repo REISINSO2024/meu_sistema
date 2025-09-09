@@ -11,6 +11,7 @@ const tabelaDados = document.getElementById('tabela-dados');
 const tabelaCabecalho = document.getElementById('tabela-cabecalho');
 
 let dados = [];
+let cabecalho = []; // Armazena o cabeçalho da planilha original
 
 // Função principal para carregar os dados da planilha
 async function carregarPlanilha() {
@@ -37,7 +38,7 @@ async function carregarPlanilha() {
 // Processa o texto CSV e armazena os dados
 function processarCSV(csv, tipo) {
   const linhas = csv.split('\n').map(l => l.split(','));
-  const cabecalho = linhas[0].map(col => col.trim());
+  cabecalho = linhas[0].map(col => col.trim()); // Pega o cabeçalho da primeira linha
   dados = linhas.slice(1).map(linha => {
     const obj = {};
     cabecalho.forEach((coluna, i) => {
@@ -45,6 +46,9 @@ function processarCSV(csv, tipo) {
     });
     return obj;
   });
+
+  // Renderiza o cabeçalho e depois os dados
+  renderizarCabecalho(cabecalho);
 
   if (tipo === 'meusBairros') {
     configurarMeusBairros();
@@ -55,18 +59,14 @@ function processarCSV(csv, tipo) {
 
 // Configura a interface e exibe dados para a planilha "Meus Bairros"
 function configurarMeusBairros() {
-  const cabecalhoMeusBairros = ['BAIRRO', 'CÓDIGO', 'ANO', 'LIRA 1 QT', 'LIRA 2 QT', 'LIRA 3 QT', 'LIRA 4 QT', 'IIP 1 LIRAa', 'IIP 2 LIRAa', 'IIP 3 LIRAa', 'IIP 4 LIRAa'];
-  renderizarCabecalho(cabecalhoMeusBairros);
-
-  // Popula o seletor de bairros
   const bairros = [...new Set(dados.map(item => item['BAIRRO']))].filter(bairro => bairro);
   bairroSelect.innerHTML = '<option value="">-- Escolha um bairro --</option>' + bairros.map(bairro => `<option value="${bairro}">${bairro}</option>`).join('');
-  bairroSelect.style.display = 'inline-block'; // Mostra o seletor
+  bairroSelect.style.display = 'inline-block';
   
-  // Adiciona o evento para filtrar
+  // Remove o listener antigo antes de adicionar o novo
+  bairroSelect.removeEventListener('change', filtrarPorBairro);
   bairroSelect.addEventListener('change', filtrarPorBairro);
   
-  // Exibe o primeiro item da lista se houver
   if (bairros.length > 0) {
       bairroSelect.value = bairros[0];
   }
@@ -76,9 +76,7 @@ function configurarMeusBairros() {
 
 // Configura a interface e exibe dados para a planilha "Indicadores"
 function configurarIndicadores() {
-  const cabecalhoIndicadores = ['REGIÃO', 'ÍNDICE', 'DATA', 'OBSERVAÇÃO'];
-  renderizarCabecalho(cabecalhoIndicadores);
-  bairroSelect.style.display = 'none'; // Esconde o seletor
+  bairroSelect.style.display = 'none';
   renderizarDados(dados);
 }
 
@@ -89,7 +87,7 @@ function filtrarPorBairro() {
   renderizarDados(dadosFiltrados);
 }
 
-// Renderiza o cabeçalho da tabela
+// Renderiza o cabeçalho da tabela com base nos dados do CSV
 function renderizarCabecalho(cabecalhoArray) {
   tabelaCabecalho.innerHTML = `<tr>${cabecalhoArray.map(col => `<th>${col}</th>`).join('')}</tr>`;
 }
@@ -97,7 +95,8 @@ function renderizarCabecalho(cabecalhoArray) {
 // Renderiza os dados na tabela
 function renderizarDados(items) {
   tabelaDados.innerHTML = items.map(item => {
-    const colunas = Object.values(item);
+    // Usa o cabeçalho extraído do CSV para garantir a ordem correta
+    const colunas = cabecalho.map(key => item[key]);
     return `<tr>${colunas.map(col => `<td>${col}</td>`).join('')}</tr>`;
   }).join('');
 }
@@ -105,5 +104,5 @@ function renderizarDados(items) {
 // Adiciona os event listeners
 document.addEventListener('DOMContentLoaded', () => {
   planilhaSelect.addEventListener('change', carregarPlanilha);
-  carregarPlanilha(); // Carrega a planilha inicial ao carregar a página
+  carregarPlanilha();
 });
