@@ -1,5 +1,5 @@
 const planilhas = {
-  meusBairros: 'https://docs.google.com/spreadsheets/d/1esxkfWErlA1v2UNqrPOC-puN3IZ_7YaC/export?format=csv&gid=1032123068'
+  meusBairros: 'https://docs.google.com/spreadsheets/d/1Uvteq5WLaW_SWD0V7OuV81pQIM0naKjaa0Gu3BFM3rY/export?format=csv&gid=1032123068'
 };
 
 function carregarPlanilha() {
