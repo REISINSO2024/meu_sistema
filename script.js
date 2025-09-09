@@ -38,7 +38,8 @@ async function carregarPlanilha() {
 // Processa o texto CSV e armazena os dados
 function processarCSV(csv, tipo) {
   const linhas = csv.split('\n').map(l => l.split(','));
-  cabecalho = linhas[0].map(col => col.trim()); // Pega o cabeçalho da primeira linha
+  // Pega o cabeçalho e garante que ele seja a referência
+  cabecalho = linhas[0].map(col => col.trim()); 
   dados = linhas.slice(1).map(linha => {
     const obj = {};
     cabecalho.forEach((coluna, i) => {
@@ -47,7 +48,7 @@ function processarCSV(csv, tipo) {
     return obj;
   });
 
-  // Renderiza o cabeçalho e depois os dados
+  // Renderiza o cabeçalho correto antes de exibir os dados
   renderizarCabecalho(cabecalho);
 
   if (tipo === 'meusBairros') {
@@ -63,7 +64,6 @@ function configurarMeusBairros() {
   bairroSelect.innerHTML = '<option value="">-- Escolha um bairro --</option>' + bairros.map(bairro => `<option value="${bairro}">${bairro}</option>`).join('');
   bairroSelect.style.display = 'inline-block';
   
-  // Remove o listener antigo antes de adicionar o novo
   bairroSelect.removeEventListener('change', filtrarPorBairro);
   bairroSelect.addEventListener('change', filtrarPorBairro);
   
@@ -95,7 +95,8 @@ function renderizarCabecalho(cabecalhoArray) {
 // Renderiza os dados na tabela
 function renderizarDados(items) {
   tabelaDados.innerHTML = items.map(item => {
-    // Usa o cabeçalho extraído do CSV para garantir a ordem correta
+    // Agora, usa a variável 'cabecalho' que foi definida na função processarCSV.
+    // Isso garante que a ordem das colunas seja a mesma do cabeçalho original.
     const colunas = cabecalho.map(key => item[key]);
     return `<tr>${colunas.map(col => `<td>${col}</td>`).join('')}</tr>`;
   }).join('');
