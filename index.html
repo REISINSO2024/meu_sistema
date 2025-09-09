@@ -8,36 +8,24 @@
   <script defer src="script.js"></script>
 </head>
 <body>
-  <h1>Sistema de Análise - Meus Bairros</h1>
+  <h1>Sistema de Análise</h1>
 
-  <!-- Seletor de planilha (caso queira expandir no futuro) -->
+  <!-- Seletor de planilhas -->
+  <label for="planilhaSelect">Escolha a planilha:</label>
   <select id="planilhaSelect" onchange="carregarPlanilha()">
     <option value="meusBairros">Meus Bairros</option>
-    <!-- outras planilhas podem ser adicionadas aqui -->
+    <option value="indicadores">Indicadores</option>
   </select>
 
-  <!-- Filtro por bairro -->
+  <!-- Filtro por bairro (usado apenas por "Meus Bairros") -->
+  <label for="bairroSelect">Filtrar por bairro:</label>
   <select id="bairroSelect" onchange="filtrarPorBairro()">
     <option value="">-- Escolha um bairro --</option>
   </select>
 
   <!-- Tabela de dados -->
   <table id="tabela">
-    <thead>
-      <tr>
-        <th>BAIRRO</th>
-        <th>CÓDIGO</th>
-        <th>ANO</th>
-        <th>LIRA 1 QT</th>
-        <th>LIRA 2 QT</th>
-        <th>LIRA 3 QT</th>
-        <th>LIRA 4 QT</th>
-        <th>IIP 1 LIRAa</th>
-        <th>IIP 2 LIRAa</th>
-        <th>IIP 3 LIRAa</th>
-        <th>IIP 4 LIRAa</th>
-      </tr>
-    </thead>
+    <thead id="tabela-cabecalho"></thead>
     <tbody id="tabela-dados"></tbody>
   </table>
 </body>

@@ -1,20 +1,16 @@
 // Mapeamento das planilhas disponíveis
 const planilhas = {
-  meusBairros: 'https://docs.google.com/spreadsheets/d/1Uvteq5WLaW_SWD0V7OuV81pQIM0naKjaa0Gu3BFM3rY/export?format=csv&gid=1032123068'
+  meusBairros: 'https://docs.google.com/spreadsheets/d/1Uvteq5WLaW_SWD0V7OuV81pQIM0naKjaa0Gu3BFM3rY/export?format=csv&gid=1032123068',
+  indicadores: 'https://docs.google.com/spreadsheets/d/1UCXA6OSjfmoHWPp_OUMIZpHHWKK7eL-Ywqg-yLsMOFs/export?format=csv&gid=1242024225'
 };
 
-// Variável global para armazenar os dados
 let dados = [];
 
-// Função que carrega a planilha selecionada
+// Carrega a planilha selecionada
 function carregarPlanilha() {
   const tipo = document.getElementById('planilhaSelect').value;
   const url = planilhas[tipo];
-  fetchPlanilha(url);
-}
 
-// Função que busca e processa os dados da planilha
-function fetchPlanilha(url) {
   fetch(url)
     .then(response => response.text())
     .then(csv => {
@@ -28,12 +24,16 @@ function fetchPlanilha(url) {
         return obj;
       });
 
-      preencherSelectBairros();
+      if (tipo === 'meusBairros') {
+        exibirMeusBairros();
+      } else if (tipo === 'indicadores') {
+        exibirIndicadores();
+      }
     });
 }
 
-// Função que preenche o seletor de bairros
-function preencherSelectBairros() {
+// Exibe dados da planilha "Meus Bairros"
+function exibirMeusBairros() {
   const bairros = [...new Set(dados.map(item => item['BAIRRO']))];
   const select = document.getElementById('bairroSelect');
   select.innerHTML = '<option value="">-- Escolha um bairro --</option>';
@@ -45,9 +45,11 @@ function preencherSelectBairros() {
       select.appendChild(option);
     }
   });
+
+  select.onchange = filtrarPorBairro;
+  filtrarPorBairro(); // exibe o primeiro bairro por padrão
 }
 
-// Função que filtra os dados por bairro e exibe na tabela
 function filtrarPorBairro() {
   const bairroSelecionado = document.getElementById('bairroSelect').value;
   const tabela = document.getElementById('tabela-dados');
@@ -74,8 +76,26 @@ function filtrarPorBairro() {
   });
 }
 
+// Exibe dados da planilha "Indicadores"
+function exibirIndicadores() {
+  const tabela = document.getElementById('tabela-dados');
+  const select = document.getElementById('bairroSelect');
+  select.innerHTML = ''; // sem filtro para essa planilha
 
-// 2. Depois, chamar no window.onload
+  tabela.innerHTML = '';
+  dados.forEach(item => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${item['REGIÃO']}</td>
+      <td>${item['ÍNDICE']}</td>
+      <td>${item['DATA']}</td>
+      <td>${item['OBSERVAÇÃO']}</td>
+    `;
+    tabela.appendChild(tr);
+  });
+}
+
+// Carrega a planilha padrão ao iniciar
 window.onload = () => {
-  fetchPlanilha(planilhas.meusBairros);
+  carregarPlanilha();
 };
