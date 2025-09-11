@@ -1,126 +1,336 @@
-// Mapeamento das planilhas e abas disponíveis
-const planilhas = {
-  meusBairros: 'https://docs.google.com/spreadsheets/d/1Uvteq5WLaW_SWD0V7OuV81pQIM0naKjaa0Gu3BFM3rY/export?format=csv&gid=1032123068',
-  indicadores: 'https://docs.google.com/spreadsheets/d/1UCXA6OSjfmoHWPp_OUMIZpHHWKK7eL-Ywqg-yLsMOFs/export?format=csv&gid=1242024225',
-  aba1: 'https://docs.google.com/spreadsheets/d/1I837qyKBeGs7EtNtfrmC7fhxvFC1VFVBh0fxw2lh4Mc/export?format=csv&gid=1658847410',
-  aba2: 'https://docs.google.com/spreadsheets/d/1I837qyKBeGs7EtNtfrmC7fhxvFC1VFVBh0fxw2lh4Mc/export?format=csv&gid=1058423129',
-  aba3: 'https://docs.google.com/spreadsheets/d/1I837qyKBeGs7EtNtfrmC7fhxvFC1VFVBh0fxw2lh4Mc/export?format=csv&gid=1243232255'
+// =============================================
+// SISTEMA DE ESTRATIFICAÇÃO - VERSÃO COMPLETA
+// =============================================
+
+// --- VARIÁVEIS GLOBAIS ---
+let bairros = [];
+let estado = {
+    bairroSelecionado: null,
+    quadrasDisponiveis: [],
+    quadrasSelecionadas: new Set()
 };
 
-// Variáveis para elementos do DOM
-const planilhaSelect = document.getElementById('planilhaSelect');
-const bairroSelect = document.getElementById('bairroSelect');
-const tabelaDados = document.getElementById('tabela-dados');
-const tabelaCabecalho = document.getElementById('tabela-cabecalho');
+// --- ELEMENTOS DO DOM ---
+const selectBairro = document.getElementById("bairro");
+const resumoGeralDiv = document.getElementById("resumoGeral");
+const listaQuadrasDiv = document.getElementById("listaQuadras");
+const resumoProgramadosDiv = document.getElementById("resumoProgramados");
+const entradaQuadras = document.getElementById("entradaQuadras");
+const aplicarTextoBtn = document.getElementById("aplicarTexto");
+const limparTudoBtn = document.getElementById("limparTudo");
+const dadosDetalhesDiv = document.getElementById("dadosDetalhes");
 
-let dados = [];
-let cabecalho = [];
+// --- FUNÇÕES PRINCIPAIS ---
 
-// Função principal para carregar os dados da planilha
-async function carregarPlanilha() {
-  const tipo = planilhaSelect.value;
-  const url = planilhas[tipo];
-
-  if (!url) {
-    console.error('URL da planilha não encontrada.');
-    return;
-  }
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error('Falha ao carregar a planilha.');
-    }
-    const csv = await response.text();
-    processarCSV(csv, tipo);
-  } catch (error) {
-    console.error('Erro ao carregar os dados:', error);
-  }
+// 1. CARREGAR DADOS E PREENCHER BAIRROS
+function carregarDados() {
+    fetch('data/bairros_4ciclo_2025.json')
+        .then(response => {
+            if (!response.ok) throw new Error('Erro ao carregar dados');
+            return response.json();
+        })
+        .then(data => {
+            bairros = data;
+            preencherListaBairros();
+            console.log('Dados carregados:', bairros.length, 'registros');
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao carregar dados. Verifique o console para detalhes.');
+        });
 }
 
-// Processa o texto CSV e armazena os dados de forma robusta
-function processarCSV(csv, tipo) {
-  // Ignora linhas vazias no final
-  const linhas = csv.split('\n').filter(linha => linha.trim() !== '');
-  
-  // Se não houver dados, limpa a tabela e sai da função
-  if (linhas.length <= 1) {
-    tabelaCabecalho.innerHTML = '';
-    tabelaDados.innerHTML = '<tr><td colspan="100%">Não há dados para exibir.</td></tr>';
-    return;
-  }
-
-  // Pega o cabeçalho e garante que ele seja a referência
-  cabecalho = linhas[0].split(',').map(col => col.trim().replace(/"/g, ''));
-  
-  dados = linhas.slice(1).map(linha => {
-    // Usa uma regex para dividir as colunas, lidando com vírgulas dentro de aspas
-    const colunas = linha.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+// 2. PREENCHER LISTA DE BAIRROS
+function preencherListaBairros() {
+    if (!selectBairro) return;
     
-    const obj = {};
-    if (colunas) {
-      cabecalho.forEach((coluna, i) => {
-        // Remove aspas e espaços extras
-        obj[coluna] = colunas[i] ? colunas[i].trim().replace(/"/g, '') : '';
-      });
+    selectBairro.innerHTML = '<option value="">-- Escolha um bairro --</option>';
+    
+    const bairrosUnicos = [...new Set(bairros.map(item => item.BAIRRO))].sort();
+    
+    bairrosUnicos.forEach(bairro => {
+        const option = document.createElement("option");
+        option.value = bairro;
+        option.textContent = bairro;
+        selectBairro.appendChild(option);
+    });
+}
+
+// 3. MONTAR RESUMO GERAL DO BAIRRO (COM TODOS OS DADOS)
+function montarResumoGeral() {
+    if (!resumoGeralDiv) return;
+    
+    const bairroNome = estado.bairroSelecionado;
+    if (!bairroNome) {
+        resumoGeralDiv.innerHTML = "";
+        return;
     }
-    return obj;
-  });
-
-  renderizarCabecalho(cabecalho);
-
-  if (tipo === 'meusBairros') {
-    configurarMeusBairros();
-  } else {
-    configurarGeral();
-  }
+    
+    const dadosBairro = bairros.filter(b => b.BAIRRO === bairroNome);
+    
+    if (dadosBairro.length === 0) {
+        resumoGeralDiv.innerHTML = "<em>Nenhum dado encontrado para este bairro.</em>";
+        return;
+    }
+    
+    // Calcular totais de TODOS os campos
+    const totais = calcularTotaisBairro(dadosBairro);
+    const totalProgramados = totais.TOTAL - totais["AP. ACIMA DO TÉRREO"];
+    
+    resumoGeralDiv.innerHTML = `
+        <div class="small"><strong>Bairro:</strong> ${bairroNome}</div>
+        <span><strong>Total de Quadras:</strong> ${dadosBairro.length}</span>
+        <span><strong>Total de Imóveis:</strong> ${totais.TOTAL}</span>
+        <span><strong>Residências (R):</strong> ${totais.R}</span>
+        <span><strong>Comércios (C):</strong> ${totais.C}</span>
+        <span><strong>Terrenos Baldios (TB):</strong> ${totais.TB}</span>
+        <span><strong>Outros (OU):</strong> ${totais.OU}</span>
+        <span><strong>Pontos Estratégicos (PE):</strong> ${totais.PE}</span>
+        <span><strong>Apartamentos Acima Térreo:</strong> ${totais["AP. ACIMA DO TÉRREO"]}</span>
+        <span><strong>Total de Habitantes:</strong> ${totais.HABITANTES}</span>
+        <span><strong>🏠 Imóveis Programados:</strong> ${totalProgramados}</span>
+        <span><strong>🐕 Cães:</strong> ${totais.CÃO}</span>
+        <span><strong>🐈 Gatos:</strong> ${totais.GATO}</span>
+    `;
 }
 
-// Configura a interface e exibe dados para a planilha "Meus Bairros"
-function configurarMeusBairros() {
-  const bairros = [...new Set(dados.map(item => item['BAIRRO']))].filter(bairro => bairro);
-  bairroSelect.innerHTML = '<option value="">-- Escolha um bairro --</option>' + bairros.map(bairro => `<option value="${bairro}">${bairro}</option>`).join('');
-  bairroSelect.style.display = 'inline-block';
-  
-  bairroSelect.removeEventListener('change', filtrarPorBairro);
-  bairroSelect.addEventListener('change', filtrarPorBairro);
-  
-  if (bairros.length > 0) {
-      bairroSelect.value = bairros[0];
-  }
-
-  filtrarPorBairro();
+// 4. CALCULAR TOTAIS COMPLETOS DO BAIRRO
+function calcularTotaisBairro(dadosBairro) {
+    const campos = [
+        'R', 'C', 'TB', 'OU', 'PE', 'TOTAL', 'APARTAMENTO EXISTENTE',
+        'APARTAMENTO NO TÉRREO', 'AP. ACIMA DO TÉRREO', 'HABITANTES',
+        'TANQUE EXISTENTE', 'TANQUE PEIXADO', 'TAMBOR EXISTENTE', 'TAMBOR PEIXADO',
+        'CISTERNA EXISTENTE', 'CISTERNA VEDADA', 'CISTERNA PEIXADA',
+        'CACIMBA EXISTENTE', 'CACIMBA VEDADA', 'CACIMBA PEIXADA',
+        "CAIXAS D'ÁGUA EXISTENTE", "CAIXAS D'ÁGUA NORMAL", "CAIXAS D'ÁGUA VEDADA",
+        "CAIXAS D'ÁGUA ED. NORMAL", "CAIXAS D'ÁGUA ED. VEDADA",
+        'FILTRO', 'VASO C/ PLANTA', 'POTE', 'TINA', 'CÃO', 'GATO'
+    ];
+    
+    const totais = {};
+    
+    campos.forEach(campo => {
+        totais[campo] = dadosBairro.reduce((total, item) => total + Number(item[campo] || 0), 0);
+    });
+    
+    return totais;
 }
 
-// Configuração geral para outras planilhas
-function configurarGeral() {
-  bairroSelect.style.display = 'none';
-  renderizarDados(dados);
+// 5. MONTAR LISTA DE QUADRAS COM DETALHES
+function montarListaQuadras() {
+    if (!listaQuadrasDiv) return;
+    
+    listaQuadrasDiv.innerHTML = "";
+    
+    if (!estado.bairroSelecionado) {
+        listaQuadrasDiv.innerHTML = "<em>Selecione um bairro primeiro.</em>";
+        return;
+    }
+    
+    const dadosBairro = bairros.filter(b => b.BAIRRO === estado.bairroSelecionado);
+    const quadras = [...new Set(dadosBairro.map(item => item.QT))].sort();
+    estado.quadrasDisponiveis = quadras;
+    
+    if (quadras.length === 0) {
+        listaQuadrasDiv.innerHTML = "<em>Nenhuma quadra encontrada.</em>";
+        return;
+    }
+    
+    quadras.forEach(quadra => {
+        const dadosQuadra = dadosBairro.find(b => b.QT === quadra);
+        const somaTotal = Number(dadosQuadra?.TOTAL || 0);
+        const isExtinta = somaTotal === 0;
+        
+        const wrapper = document.createElement("div");
+        wrapper.className = "quadra-item";
+        
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = quadra;
+        checkbox.id = `quadra-${quadra}`;
+        checkbox.checked = estado.quadrasSelecionadas.has(quadra);
+        
+        const label = document.createElement("label");
+        label.htmlFor = checkbox.id;
+        label.innerHTML = isExtinta ? 
+            `<span class="extinta">Quadra ${quadra} (extinta)</span>` :
+            `Quadra ${quadra} - ${somaTotal} imóveis`;
+        
+        label.style.marginLeft = "8px";
+        label.style.cursor = "pointer";
+        
+        // Tooltip com informações da quadra
+        label.title = `Quadra ${quadra}: ${somaTotal} imóveis, ${dadosQuadra?.HABITANTES || 0} habitantes`;
+        
+        checkbox.addEventListener("change", () => {
+            if (checkbox.checked) {
+                estado.quadrasSelecionadas.add(quadra);
+            } else {
+                estado.quadrasSelecionadas.delete(quadra);
+            }
+            atualizarProgramados();
+            mostrarDetalhesQuadras();
+        });
+        
+        wrapper.appendChild(checkbox);
+        wrapper.appendChild(label);
+        listaQuadrasDiv.appendChild(wrapper);
+    });
 }
 
-// Filtra os dados da planilha "Meus Bairros"
-function filtrarPorBairro() {
-  const bairroSelecionado = bairroSelect.value;
-  const dadosFiltrados = dados.filter(item => item['BAIRRO'] === bairroSelecionado);
-  renderizarDados(dadosFiltrados);
+// 6. ATUALIZAR RESUMO DE PROGRAMADOS COMPLETO
+function atualizarProgramados() {
+    if (!resumoProgramadosDiv) return;
+    
+    if (!estado.bairroSelecionado || estado.quadrasSelecionadas.size === 0) {
+        resumoProgramadosDiv.innerHTML = "<em>Selecione quadras para ver os programados.</em>";
+        return;
+    }
+    
+    const dadosBairro = bairros.filter(b => b.BAIRRO === estado.bairroSelecionado);
+    const totais = calcularTotaisQuadrasSelecionadas(dadosBairro);
+    const programados = totais.TOTAL - totais["AP. ACIMA DO TÉRREO"];
+    
+    resumoProgramadosDiv.innerHTML = `
+        <span><strong>Quadras Selecionadas:</strong> ${estado.quadrasSelecionadas.size}</span>
+        <span><strong>Total de Imóveis:</strong> ${totais.TOTAL}</span>
+        <span><strong>Residências (R):</strong> ${totais.R}</span>
+        <span><strong>Comércios (C):</strong> ${totais.C}</span>
+        <span><strong>Terrenos Baldios (TB):</strong> ${totais.TB}</span>
+        <span><strong>Outros (OU):</strong> ${totais.OU}</span>
+        <span><strong>Pontos Estratégicos (PE):</strong> ${totais.PE}</span>
+        <span><strong>Apartamentos Acima Térreo:</strong> ${totais["AP. ACIMA DO TÉRREO"]}</span>
+        <span><strong>Total de Habitantes:</strong> ${totais.HABITANTES}</span>
+        <span><strong>🏠 Imóveis Programados:</strong> ${programados}</span>
+        <span><strong>🐕 Cães:</strong> ${totais.CÃO}</span>
+        <span><strong>🐈 Gatos:</strong> ${totais.GATO}</span>
+        <span><strong>💧 Depósitos de Água:</strong> ${totais["CAIXAS D'ÁGUA EXISTENTE"] + totais["TANQUE EXISTENTE"] + totais["TAMBOR EXISTENTE"] + totais["CISTERNA EXISTENTE"] + totais["CACIMBA EXISTENTE"]}</span>
+    `;
 }
 
-// Renderiza o cabeçalho da tabela com base nos dados do CSV
-function renderizarCabecalho(cabecalhoArray) {
-  tabelaCabecalho.innerHTML = `<tr>${cabecalhoArray.map(col => `<th>${col}</th>`).join('')}</tr>`;
+// 7. CALCULAR TOTAIS DAS QUADRAS SELECIONADAS
+function calcularTotaisQuadrasSelecionadas(dadosBairro) {
+    const campos = [
+        'R', 'C', 'TB', 'OU', 'PE', 'TOTAL', 'AP. ACIMA DO TÉRREO', 'HABITANTES',
+        'TANQUE EXISTENTE', 'TAMBOR EXISTENTE', 'CISTERNA EXISTENTE', 'CACIMBA EXISTENTE',
+        "CAIXAS D'ÁGUA EXISTENTE", 'CÃO', 'GATO'
+    ];
+    
+    const totais = {};
+    campos.forEach(campo => totais[campo] = 0);
+    
+    estado.quadrasSelecionadas.forEach(quadra => {
+        const dadosQuadra = dadosBairro.find(b => b.QT === quadra);
+        if (dadosQuadra) {
+            campos.forEach(campo => {
+                totais[campo] += Number(dadosQuadra[campo] || 0);
+            });
+        }
+    });
+    
+    return totais;
 }
 
-// Renderiza os dados na tabela
-function renderizarDados(items) {
-  tabelaDados.innerHTML = items.map(item => {
-    const colunas = cabecalho.map(key => item[key]);
-    return `<tr>${colunas.map(col => `<td>${col}</td>`).join('')}</tr>`;
-  }).join('');
+// 8. MOSTRAR DETALHES DAS QUADRAS SELECIONADAS
+function mostrarDetalhesQuadras() {
+    if (!dadosDetalhesDiv) return;
+    
+    if (estado.quadrasSelecionadas.size === 0) {
+        dadosDetalhesDiv.innerHTML = "";
+        return;
+    }
+    
+    const dadosBairro = bairros.filter(b => b.BAIRRO === estado.bairroSelecionado);
+    let detalhes = "🟢 QUADRAS SELECIONADAS:\n\n";
+    
+    estado.quadrasSelecionadas.forEach(quadra => {
+        const dados = dadosBairro.find(b => b.QT === quadra);
+        if (dados) {
+            detalhes += `📍 Quadra ${quadra}:\n`;
+            detalhes += `   • Imóveis: ${dados.TOTAL}\n`;
+            detalhes += `   • Habitantes: ${dados.HABITANTES}\n`;
+            detalhes += `   • PE: ${dados.PE}\n`;
+            detalhes += `   • Cães: ${dados.CÃO}, Gatos: ${dados.GATO}\n`;
+            detalhes += `   • Depósitos água: ${dados["CAIXAS D'ÁGUA EXISTENTE"] + dados.TANQUE_EXISTENTE + dados.TAMBOR_EXISTENTE}\n\n`;
+        }
+    });
+    
+    dadosDetalhesDiv.innerHTML = detalhes;
 }
 
-// Adiciona os event listeners
-document.addEventListener('DOMContentLoaded', () => {
-  planilhaSelect.addEventListener('change', carregarPlanilha);
-  carregarPlanilha();
+// 9. INTERPRETAR ENTRADA DE TEXTO PARA QUADRAS
+function interpretarEntrada(texto) {
+    const partes = texto.split(/[\s,;]+/).filter(Boolean);
+    const selecionadas = new Set();
+    
+    partes.forEach(parte => {
+        if (/^\d+-\d+$/.test(parte)) {
+            const [inicio, fim] = parte.split("-").map(Number);
+            if (!isNaN(inicio) && !isNaN(fim)) {
+                for (let i = inicio; i <= fim; i++) {
+                    selecionadas.add(String(i));
+                }
+            }
+        } else {
+            selecionadas.add(parte);
+        }
+    });
+    
+    return selecionadas;
+}
+
+// 10. LIMPAR TUDO
+function limparTudo() {
+    estado.bairroSelecionado = null;
+    estado.quadrasSelecionadas.clear();
+    estado.quadrasDisponiveis = [];
+    
+    if (selectBairro) selectBairro.value = "";
+    if (entradaQuadras) entradaQuadras.value = "";
+    if (resumoGeralDiv) resumoGeralDiv.innerHTML = "";
+    if (listaQuadrasDiv) listaQuadrasDiv.innerHTML = "";
+    if (resumoProgramadosDiv) resumoProgramadosDiv.innerHTML = "<em>Selecione quadras para ver os programados.</em>";
+    if (dadosDetalhesDiv) dadosDetalhesDiv.innerHTML = "";
+}
+
+// --- INICIALIZAÇÃO ---
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("Sistema de estratificação inicializando...");
+    
+    carregarDados();
+    
+    // Event listeners
+    if (selectBairro) {
+        selectBairro.addEventListener("change", function() {
+            estado.bairroSelecionado = this.value;
+            estado.quadrasSelecionadas.clear();
+            montarResumoGeral();
+            montarListaQuadras();
+            atualizarProgramados();
+            mostrarDetalhesQuadras();
+        });
+    }
+    
+    if (aplicarTextoBtn && entradaQuadras) {
+        aplicarTextoBtn.addEventListener("click", function() {
+            if (!estado.bairroSelecionado) {
+                alert("Selecione um bairro primeiro!");
+                return;
+            }
+            
+            const texto = entradaQuadras.value;
+            const quadrasSelecionadas = interpretarEntrada(texto);
+            
+            estado.quadrasSelecionadas = quadrasSelecionadas;
+            montarListaQuadras();
+            atualizarProgramados();
+            mostrarDetalhesQuadras();
+        });
+    }
+    
+    if (limparTudoBtn) {
+        limparTudoBtn.addEventListener("click", limparTudo);
+    }
+    
+    console.log("Sistema inicializado com sucesso!");
 });
-
