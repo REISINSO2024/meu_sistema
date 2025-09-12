@@ -59,41 +59,51 @@ function preencherListaBairros() {
 // 3. MONTAR RESUMO GERAL DO BAIRRO (COM TODOS OS DADOS)
 function montarResumoGeral() {
     if (!resumoGeralDiv) return;
-    
+
     const bairroNome = estado.bairroSelecionado;
     if (!bairroNome) {
         resumoGeralDiv.innerHTML = "";
         return;
     }
-    
+
     const dadosBairro = bairros.filter(b => b.BAIRRO === bairroNome);
-    
+
     if (dadosBairro.length === 0) {
         resumoGeralDiv.innerHTML = "<em>Nenhum dado encontrado para este bairro.</em>";
         return;
     }
-    
-    // Calcular totais de TODOS os campos
+
+    // 1) quadras únicas (string trimmed)
+    const quadrasUnicas = [...new Set(dadosBairro.map(item => String(item.QT).trim()))];
+
+    // 2) quadras ativas = existem e TOTAL > 0
+    const quadrasAtivas = quadrasUnicas.filter(qt => {
+        const row = dadosBairro.find(b => String(b.QT).trim() === qt);
+        const total = Number(row?.TOTAL);
+        return !isNaN(total) && total > 0;
+    });
+
+    // 3) totais (mantém sua função existente)
     const totais = calcularTotaisBairro(dadosBairro);
-    const totalProgramados = totais.TOTAL - totais["AP. ACIMA DO TÉRREO"];
-    
+    const totalProgramados = (totais.TOTAL || 0) - (totais["AP. ACIMA DO TÉRREO"] || 0);
+
     resumoGeralDiv.innerHTML = `
         <div class="small"><strong>Bairro:</strong> ${bairroNome}</div>
-       const quadrasAtivas = dadosBairro.filter(b => Number(b.TOTAL) > 0);
-        <span><strong>Total de Quadras:</strong> ${quadrasAtivas.length}</span>
+        <span><strong>Total de Quadras (ativas):</strong> ${quadrasAtivas.length}</span>
         <span><strong>Total de Imóveis:</strong> ${totais.TOTAL}</span>
         <span><strong>Residências (R):</strong> ${totais.R}</span>
         <span><strong>Comércios (C):</strong> ${totais.C}</span>
         <span><strong>Terrenos Baldios (TB):</strong> ${totais.TB}</span>
         <span><strong>Outros (OU):</strong> ${totais.OU}</span>
         <span><strong>Pontos Estratégicos (PE):</strong> ${totais.PE}</span>
-        <span><strong>Apartamentos Acima Térreo:</strong> ${totais["AP. ACIMA DO TÉRREO"]}</span>
+        <span><strong>Apartamentos Acima Térreo:</strong> ${totais["AP. ACIMA DO TÉRREO"] || 0}</span>
         <span><strong>Total de Habitantes:</strong> ${totais.HABITANTES}</span>
         <span><strong>🏠 Imóveis Programados:</strong> ${totalProgramados}</span>
         <span><strong>🐕 Cães:</strong> ${totais.CÃO}</span>
         <span><strong>🐈 Gatos:</strong> ${totais.GATO}</span>
     `;
 }
+
 
 // 4. CALCULAR TOTAIS COMPLETOS DO BAIRRO
 function calcularTotaisBairro(dadosBairro) {
@@ -427,6 +437,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     console.log("Sistema inicializado com sucesso!");
 }); // ✅ fechamento adicionado aqui
+
 
 
 
