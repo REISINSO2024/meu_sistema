@@ -141,14 +141,33 @@ function montarListaQuadras() {
         return;
     }
     
-    const dadosBairro = bairros.filter(b => b.BAIRRO === estado.bairroSelecionado);
-    const quadras = [...new Set(dadosBairro.map(item => item.QT))].sort();
-    estado.quadrasDisponiveis = quadras;
-    
-    if (quadras.length === 0) {
-        listaQuadrasDiv.innerHTML = "<em>Nenhuma quadra encontrada.</em>";
-        return;
-    }
+   const dadosBairro = bairros.filter(b => b.BAIRRO === estado.bairroSelecionado);
+
+// pega todas as quadras e aplica a ordenação pai/filho
+const quadras = [...new Set(dadosBairro.map(item => item.QT))].sort((a, b) => {
+    const [paiA, filhoA] = a.split("/").map(Number);
+    const [paiB, filhoB] = b.split("/").map(Number);
+
+    // ordena pelo número do pai
+    if (paiA !== paiB) return paiA - paiB;
+
+    // se o pai for igual, coloca os sem filho primeiro
+    if (filhoA == null && filhoB != null) return -1;
+    if (filhoA != null && filhoB == null) return 1;
+
+    // se ambos têm filho, ordena pelo número do filho
+    if (filhoA != null && filhoB != null) return filhoA - filhoB;
+
+    return 0;
+});
+
+estado.quadrasDisponiveis = quadras;
+
+if (quadras.length === 0) {
+    listaQuadrasDiv.innerHTML = "<em>Nenhuma quadra encontrada.</em>";
+    return;
+}
+
     
     quadras.forEach(quadra => {
         const dadosQuadra = dadosBairro.find(b => b.QT === quadra);
@@ -380,6 +399,7 @@ document.addEventListener("DOMContentLoaded", function() {
     console.log("Sistema inicializado com sucesso!");
 
 });
+
 
 
 
