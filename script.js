@@ -110,11 +110,25 @@ function calcularTotaisBairro(dadosBairro) {
     const totais = {};
     
     campos.forEach(campo => {
-        totais[campo] = dadosBairro.reduce((total, item) => total + Number(item[campo] || 0), 0);
+        totais[campo] = dadosBairro.reduce((total, item) => {
+            let valor = item[campo];
+
+            // Se for string numérica, converte
+            if (typeof valor === "string") {
+                valor = valor.trim();
+                valor = valor === "" ? 0 : Number(valor);
+            }
+
+            // Se não for número válido, ignora (considera 0)
+            if (isNaN(valor)) valor = 0;
+
+            return total + valor;
+        }, 0);
     });
     
     return totais;
 }
+
 
 // 5. MONTAR LISTA DE QUADRAS COM DETALHES
 function montarListaQuadras() {
@@ -335,3 +349,4 @@ document.addEventListener("DOMContentLoaded", function() {
     console.log("Sistema inicializado com sucesso!");
 
 });
+
