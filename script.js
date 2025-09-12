@@ -163,36 +163,31 @@ function montarListaQuadras() {
         return;
     }
 
-    quadras.forEach(quadra => {
-        const dadosQuadra = dadosBairro.find(b => b.QT === quadra);
-        const somaTotal = Number(dadosQuadra?.TOTAL || 0);
-        const isExtinta = somaTotal === 0;
+  quadras.forEach(quadra => {
+    const dadosQuadra = dadosBairro.find(b => b.QT === quadra);
+    const somaTotal = Number(dadosQuadra?.TOTAL || 0);
+    const isExtinta = somaTotal === 0;
 
-        const wrapper = document.createElement("div");
-        wrapper.className = "quadra-item";
+    const wrapper = document.createElement("div");
+    wrapper.className = "quadra-item";
 
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.value = quadra;
-        checkbox.id = `quadra-${quadra}`;
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = quadra;
+    checkbox.id = `quadra-${quadra}`;
 
+    if (isExtinta) {
+        // quadras extintas não podem ser selecionadas
+        checkbox.disabled = true;
+    } else {
         // só marca se não for extinta
-        checkbox.checked = !isExtinta && Array.from(estado.quadrasSelecionadas).some(sel => {
+        checkbox.checked = Array.from(estado.quadrasSelecionadas).some(sel => {
             if (sel === quadra) return true;
             if (quadra.startsWith(sel + "/")) return true;
             return false;
         });
 
-        const label = document.createElement("label");
-        label.htmlFor = checkbox.id;
-        label.innerHTML = isExtinta ?
-            `<span class="extinta">${quadra} (extinta)</span>` :
-            `${quadra} - ${somaTotal} imóveis`;
-
-        label.style.marginLeft = "8px";
-        label.style.cursor = "pointer";
-
-        // evento de clique no checkbox
+        // evento de clique no checkbox (só para ativas)
         checkbox.addEventListener("change", () => {
             if (checkbox.checked) {
                 estado.quadrasSelecionadas.add(quadra);
@@ -202,11 +197,22 @@ function montarListaQuadras() {
             atualizarProgramados();
             atualizarQuadrasSelecionadas();
         });
+    }
 
-        wrapper.appendChild(checkbox);
-        wrapper.appendChild(label);
-        listaQuadrasDiv.appendChild(wrapper);
-    });
+    const label = document.createElement("label");
+    label.htmlFor = checkbox.id;
+    label.innerHTML = isExtinta
+        ? `<span class="extinta">${quadra} (extinta)</span>`
+        : `${quadra} - ${somaTotal} imóveis`;
+
+    label.style.marginLeft = "8px";
+    label.style.cursor = isExtinta ? "not-allowed" : "pointer";
+
+    wrapper.appendChild(checkbox);
+    wrapper.appendChild(label);
+    listaQuadrasDiv.appendChild(wrapper);
+});
+
 }
 
 // === FUNÇÃO: MOSTRAR APENAS QUADRAS SELECIONADAS ===
@@ -216,21 +222,20 @@ function atualizarQuadrasSelecionadas() {
 
     if (estado.quadrasSelecionadas.size === 0) {
         textarea.value = "";
-        detalhesDiv.innerHTML = ""; // sempre vazio
+        detalhesDiv.innerHTML = "";
         return;
     }
 
-    // mantém só quadras que realmente existem no bairro atual
-    const quadrasValidas = Array.from(estado.quadrasSelecionadas).filter(q =>
-        estado.quadrasDisponiveis.includes(q)
-    );
+    // mantém só quadras válidas do bairro e que não sejam extintas
+    const quadrasValidas = Array.from(estado.quadrasSelecionadas).filter(q => {
+        const dados = bairros.find(b => b.BAIRRO === estado.bairroSelecionado && b.QT === q);
+        return dados && Number(dados.TOTAL) > 0;
+    });
 
-    // coloca só as quadras válidas no campo
     textarea.value = quadrasValidas.join(", ");
-
-    // detalhes sempre vazio
     detalhesDiv.innerHTML = "";
 }
+
 
 
 // 6. ATUALIZAR RESUMO DE PROGRAMADOS COMPLETO
@@ -414,6 +419,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     console.log("Sistema inicializado com sucesso!");
 }); // ✅ fechamento adicionado aqui
+
 
 
 
