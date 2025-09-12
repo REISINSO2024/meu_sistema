@@ -167,8 +167,7 @@ function montarListaQuadras() {
         const label = document.createElement("label");
         label.htmlFor = checkbox.id;
         label.innerHTML = isExtinta ? 
-           label.innerHTML = isExtinta ? 
-    `<span class="extinta">${quadra} (extinta)</span>` :
+            `<span class="extinta">${quadra} (extinta)</span>` :
     `${quadra} - ${somaTotal} imóveis`;
 
         
@@ -361,6 +360,7 @@ document.addEventListener("DOMContentLoaded", function() {
     console.log("Sistema inicializado com sucesso!");
 
 });
+
 
 
 
