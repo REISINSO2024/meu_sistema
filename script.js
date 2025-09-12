@@ -162,7 +162,14 @@ function montarListaQuadras() {
         checkbox.type = "checkbox";
         checkbox.value = quadra;
         checkbox.id = `quadra-${quadra}`;
-        checkbox.checked = estado.quadrasSelecionadas.has(quadra);
+        checkbox.checked = Array.from(estado.quadrasSelecionadas).some(sel => {
+    // Marca se for igual
+    if (sel === quadra) return true;
+    // Marca se for pai: ex "1" marca também "1/1", "1/2"...
+    if (quadra.startsWith(sel + "/")) return true;
+    return false;
+});
+
         
         const label = document.createElement("label");
         label.htmlFor = checkbox.id;
@@ -294,15 +301,28 @@ function interpretarEntrada(texto) {
             if (!isNaN(inicio) && !isNaN(fim)) {
                 for (let i = inicio; i <= fim; i++) {
                     selecionadas.add(String(i));
+                    // também adiciona filhos se existirem
+                    estado.quadrasDisponiveis.forEach(q => {
+                        if (q.startsWith(i + "/")) {
+                            selecionadas.add(q);
+                        }
+                    });
                 }
             }
         } else {
             selecionadas.add(parte);
+            // também adiciona filhos se existirem
+            estado.quadrasDisponiveis.forEach(q => {
+                if (q.startsWith(parte + "/")) {
+                    selecionadas.add(q);
+                }
+            });
         }
     });
     
     return selecionadas;
 }
+
 
 // 10. LIMPAR TUDO
 function limparTudo() {
@@ -360,6 +380,7 @@ document.addEventListener("DOMContentLoaded", function() {
     console.log("Sistema inicializado com sucesso!");
 
 });
+
 
 
 
