@@ -318,12 +318,14 @@ function mostrarDetalhesQuadras() {
 }
 
 // 9. INTERPRETAR ENTRADA DE TEXTO PARA QUADRAS
+// === FUNÇÃO: INTERPRETAR ENTRADA DE TEXTO PARA QUADRAS ===
 function interpretarEntrada(texto) {
     const partes = texto.split(/[\s,;]+/).filter(Boolean);
     const selecionadas = new Set();
-    
+
     partes.forEach(parte => {
         if (/^\d+-\d+$/.test(parte)) {
+            // intervalo de quadras (ex: 1-10)
             const [inicio, fim] = parte.split("-").map(Number);
             if (!isNaN(inicio) && !isNaN(fim)) {
                 for (let i = inicio; i <= fim; i++) {
@@ -337,6 +339,7 @@ function interpretarEntrada(texto) {
                 }
             }
         } else {
+            // quadra única
             selecionadas.add(parte);
             // também adiciona filhos se existirem
             estado.quadrasDisponiveis.forEach(q => {
@@ -346,7 +349,7 @@ function interpretarEntrada(texto) {
             });
         }
     });
-    
+
     return selecionadas;
 }
 
@@ -407,6 +410,7 @@ document.addEventListener("DOMContentLoaded", function() {
     console.log("Sistema inicializado com sucesso!");
 
 });
+
 
 
 
