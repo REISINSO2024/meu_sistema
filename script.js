@@ -79,7 +79,8 @@ function montarResumoGeral() {
     
     resumoGeralDiv.innerHTML = `
         <div class="small"><strong>Bairro:</strong> ${bairroNome}</div>
-        <span><strong>Total de Quadras:</strong> ${dadosBairro.length}</span>
+       const quadrasAtivas = dadosBairro.filter(b => Number(b.TOTAL) > 0);
+        <span><strong>Total de Quadras:</strong> ${quadrasAtivas.length}</span>
         <span><strong>Total de Imóveis:</strong> ${totais.TOTAL}</span>
         <span><strong>Residências (R):</strong> ${totais.R}</span>
         <span><strong>Comércios (C):</strong> ${totais.C}</span>
@@ -142,19 +143,26 @@ function montarListaQuadras() {
         return;
     }
 
-    const dadosBairro = bairros.filter(b => b.BAIRRO === estado.bairroSelecionado);
+ const dadosBairro = bairros.filter(b => b.BAIRRO === estado.bairroSelecionado);
 
-    // pega todas as quadras e aplica a ordenação pai/filho
-    const quadras = [...new Set(dadosBairro.map(item => item.QT))].sort((a, b) => {
-        const [paiA, filhoA] = a.split("/").map(Number);
-        const [paiB, filhoB] = b.split("/").map(Number);
+// pega todas as quadras e aplica a ordenação pai/filho
+const quadras = [...new Set(dadosBairro.map(item => item.QT))].sort((a, b) => {
+    const [paiA, filhoA] = a.split("/").map(Number);
+    const [paiB, filhoB] = b.split("/").map(Number);
 
-        if (paiA !== paiB) return paiA - paiB; // ordena pelo pai
-        if (filhoA == null && filhoB != null) return -1; // sem filho vem antes
-        if (filhoA != null && filhoB == null) return 1;
-        if (filhoA != null && filhoB != null) return filhoA - filhoB; // ordena filhos
-        return 0;
-    });
+    if (paiA !== paiB) return paiA - paiB;
+    if (filhoA == null && filhoB != null) return -1;
+    if (filhoA != null && filhoB == null) return 1;
+    if (filhoA != null && filhoB != null) return filhoA - filhoB;
+    return 0;
+});
+
+// quadras disponíveis = apenas as ativas (não extintas)
+estado.quadrasDisponiveis = quadras.filter(q => {
+    const dadosQuadra = dadosBairro.find(b => b.QT === q);
+    return dadosQuadra && Number(dadosQuadra.TOTAL) > 0;
+});
+
 
     estado.quadrasDisponiveis = quadras;
 
@@ -419,6 +427,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     console.log("Sistema inicializado com sucesso!");
 }); // ✅ fechamento adicionado aqui
+
 
 
 
