@@ -24,7 +24,7 @@ const dadosDetalhesDiv = document.getElementById("dadosDetalhes");
 
 // 1. CARREGAR DADOS E PREENCHER BAIRROS
 function carregarDados() {
-    fetch('data/bairros_4ciclo_2025.json')
+    fetch('bairros_4ciclo_2025.json')
         .then(response => {
             if (!response.ok) throw new Error('Erro ao carregar dados');
             return response.json();
@@ -333,4 +333,5 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     
     console.log("Sistema inicializado com sucesso!");
+
 });
