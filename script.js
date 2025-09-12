@@ -396,11 +396,11 @@ document.addEventListener("DOMContentLoaded", function() {
             const texto = entradaQuadras.value;
             const quadrasSelecionadas = interpretarEntrada(texto);
             
-            estado.quadrasSelecionadas = quadrasSelecionadas;
-            montarListaQuadras();
-            atualizarProgramados();
-            mostrarDetalhesQuadras();
-        });
+        estado.quadrasSelecionadas = quadrasSelecionadas;
+montarListaQuadras();
+atualizarProgramados();
+atualizarQuadrasSelecionadas(); // só mostra a numeração
+
     }
     
     if (limparTudoBtn) {
@@ -410,6 +410,7 @@ document.addEventListener("DOMContentLoaded", function() {
     console.log("Sistema inicializado com sucesso!");
 
 });
+
 
 
 
