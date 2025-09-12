@@ -371,10 +371,9 @@ function limparTudo() {
 // --- INICIALIZAÇÃO ---
 document.addEventListener("DOMContentLoaded", function() {
     console.log("Sistema de estratificação inicializando...");
-    
+
     carregarDados();
-    
-    // Event listeners
+
     if (selectBairro) {
         selectBairro.addEventListener("change", function() {
             estado.bairroSelecionado = this.value;
@@ -385,31 +384,32 @@ document.addEventListener("DOMContentLoaded", function() {
             mostrarDetalhesQuadras();
         });
     }
-    
+
     if (aplicarTextoBtn && entradaQuadras) {
         aplicarTextoBtn.addEventListener("click", function() {
             if (!estado.bairroSelecionado) {
                 alert("Selecione um bairro primeiro!");
                 return;
             }
-            
+
             const texto = entradaQuadras.value;
             const quadrasSelecionadas = interpretarEntrada(texto);
-            
-        estado.quadrasSelecionadas = quadrasSelecionadas;
-montarListaQuadras();
-atualizarProgramados();
-atualizarQuadrasSelecionadas(); // só mostra a numeração
 
-    });
-    
+            estado.quadrasSelecionadas = quadrasSelecionadas;
+            montarListaQuadras();
+            atualizarProgramados();
+            atualizarQuadrasSelecionadas(); // só mostra a numeração
+        });
+    }
+
     if (limparTudoBtn) {
         limparTudoBtn.addEventListener("click", limparTudo);
     }
-    
-    console.log("Sistema inicializado com sucesso!");
 
-});
+    console.log("Sistema inicializado com sucesso!");
+}); // ✅ fechamento adicionado aqui
+
+
 
 
 
