@@ -105,6 +105,8 @@ function montarResumoGeral() {
 }
 
 
+
+
 // 4. CALCULAR TOTAIS COMPLETOS DO BAIRRO
 function calcularTotaisBairro(dadosBairro) {
     const campos = [
@@ -401,42 +403,45 @@ function limparTudo() {
 document.addEventListener("DOMContentLoaded", function() {
     console.log("Sistema de estratificação inicializando...");
 
-    carregarDados();
+ carregarDados();
 
-    if (selectBairro) {
-        selectBairro.addEventListener("change", function() {
-            estado.bairroSelecionado = this.value;
-            estado.quadrasSelecionadas.clear();
-            montarResumoGeral();
-            montarListaQuadras();
-            atualizarProgramados();
-            mostrarDetalhesQuadras();
-        });
-    }
+if (selectBairro) {
+    selectBairro.addEventListener("change", function() {
+        estado.bairroSelecionado = this.value;
+        estado.quadrasSelecionadas.clear();
 
-    if (aplicarTextoBtn && entradaQuadras) {
-        aplicarTextoBtn.addEventListener("click", function() {
-            if (!estado.bairroSelecionado) {
-                alert("Selecione um bairro primeiro!");
-                return;
-            }
+        montarResumoGeral();          // ✅ atualiza o painel de resumo
+        montarListaQuadras();
+        atualizarProgramados();
+        atualizarQuadrasSelecionadas(); // ✅ só mostra a numeração
+    });
+}
 
-            const texto = entradaQuadras.value;
-            const quadrasSelecionadas = interpretarEntrada(texto);
+if (aplicarTextoBtn && entradaQuadras) {
+    aplicarTextoBtn.addEventListener("click", function() {
+        if (!estado.bairroSelecionado) {
+            alert("Selecione um bairro primeiro!");
+            return;
+        }
 
-            estado.quadrasSelecionadas = quadrasSelecionadas;
-            montarListaQuadras();
-            atualizarProgramados();
-            atualizarQuadrasSelecionadas(); // só mostra a numeração
-        });
-    }
+        const texto = entradaQuadras.value;
+        const quadrasSelecionadas = interpretarEntrada(texto);
 
-    if (limparTudoBtn) {
-        limparTudoBtn.addEventListener("click", limparTudo);
-    }
+        estado.quadrasSelecionadas = quadrasSelecionadas;
+        montarListaQuadras();
+        atualizarProgramados();
+        atualizarQuadrasSelecionadas(); // ✅ só mostra a numeração
+    });
+}
 
-    console.log("Sistema inicializado com sucesso!");
-}); // ✅ fechamento adicionado aqui
+if (limparTudoBtn) {
+    limparTudoBtn.addEventListener("click", limparTudo);
+}
+
+console.log("Sistema inicializado com sucesso!");
+}); // ✅ fechamento do DOMContentLoaded
+
+
 
 
 
