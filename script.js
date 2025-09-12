@@ -237,13 +237,23 @@ function calcularTotaisQuadrasSelecionadas(dadosBairro) {
         const dadosQuadra = dadosBairro.find(b => b.QT === quadra);
         if (dadosQuadra) {
             campos.forEach(campo => {
-                totais[campo] += Number(dadosQuadra[campo] || 0);
+                let valor = dadosQuadra[campo];
+
+                if (typeof valor === "string") {
+                    valor = valor.trim();
+                    valor = valor === "" ? 0 : Number(valor);
+                }
+
+                if (isNaN(valor)) valor = 0;
+
+                totais[campo] += valor;
             });
         }
     });
     
     return totais;
 }
+
 
 // 8. MOSTRAR DETALHES DAS QUADRAS SELECIONADAS
 function mostrarDetalhesQuadras() {
@@ -349,4 +359,5 @@ document.addEventListener("DOMContentLoaded", function() {
     console.log("Sistema inicializado com sucesso!");
 
 });
+
 
