@@ -220,12 +220,18 @@ function atualizarQuadrasSelecionadas() {
         return;
     }
 
-    // apenas os números das quadras selecionadas
-    textarea.value = Array.from(estado.quadrasSelecionadas).join(", ");
+    // mantém só quadras que realmente existem no bairro atual
+    const quadrasValidas = Array.from(estado.quadrasSelecionadas).filter(q =>
+        estado.quadrasDisponiveis.includes(q)
+    );
+
+    // coloca só as quadras válidas no campo
+    textarea.value = quadrasValidas.join(", ");
 
     // detalhes sempre vazio
     detalhesDiv.innerHTML = "";
 }
+
 
 // 6. ATUALIZAR RESUMO DE PROGRAMADOS COMPLETO
 function atualizarProgramados() {
@@ -408,6 +414,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     console.log("Sistema inicializado com sucesso!");
 }); // ✅ fechamento adicionado aqui
+
 
 
 
