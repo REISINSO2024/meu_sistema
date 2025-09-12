@@ -131,76 +131,68 @@ function calcularTotaisBairro(dadosBairro) {
 
 
 // 5. MONTAR LISTA DE QUADRAS COM DETALHES
+// === FUNÇÃO: MONTAR LISTA DE QUADRAS ===
 function montarListaQuadras() {
     if (!listaQuadrasDiv) return;
-    
+
     listaQuadrasDiv.innerHTML = "";
-    
+
     if (!estado.bairroSelecionado) {
         listaQuadrasDiv.innerHTML = "<em>Selecione um bairro primeiro.</em>";
         return;
     }
-    
-   const dadosBairro = bairros.filter(b => b.BAIRRO === estado.bairroSelecionado);
 
-// pega todas as quadras e aplica a ordenação pai/filho
-const quadras = [...new Set(dadosBairro.map(item => item.QT))].sort((a, b) => {
-    const [paiA, filhoA] = a.split("/").map(Number);
-    const [paiB, filhoB] = b.split("/").map(Number);
+    const dadosBairro = bairros.filter(b => b.BAIRRO === estado.bairroSelecionado);
 
-    // ordena pelo número do pai
-    if (paiA !== paiB) return paiA - paiB;
+    // pega todas as quadras e aplica a ordenação pai/filho
+    const quadras = [...new Set(dadosBairro.map(item => item.QT))].sort((a, b) => {
+        const [paiA, filhoA] = a.split("/").map(Number);
+        const [paiB, filhoB] = b.split("/").map(Number);
 
-    // se o pai for igual, coloca os sem filho primeiro
-    if (filhoA == null && filhoB != null) return -1;
-    if (filhoA != null && filhoB == null) return 1;
+        if (paiA !== paiB) return paiA - paiB; // ordena pelo pai
+        if (filhoA == null && filhoB != null) return -1; // sem filho vem antes
+        if (filhoA != null && filhoB == null) return 1;
+        if (filhoA != null && filhoB != null) return filhoA - filhoB; // ordena filhos
+        return 0;
+    });
 
-    // se ambos têm filho, ordena pelo número do filho
-    if (filhoA != null && filhoB != null) return filhoA - filhoB;
+    estado.quadrasDisponiveis = quadras;
 
-    return 0;
-});
+    if (quadras.length === 0) {
+        listaQuadrasDiv.innerHTML = "<em>Nenhuma quadra encontrada.</em>";
+        return;
+    }
 
-estado.quadrasDisponiveis = quadras;
-
-if (quadras.length === 0) {
-    listaQuadrasDiv.innerHTML = "<em>Nenhuma quadra encontrada.</em>";
-    return;
-}
-
-    
     quadras.forEach(quadra => {
         const dadosQuadra = dadosBairro.find(b => b.QT === quadra);
         const somaTotal = Number(dadosQuadra?.TOTAL || 0);
         const isExtinta = somaTotal === 0;
-        
+
         const wrapper = document.createElement("div");
         wrapper.className = "quadra-item";
-        
+
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.value = quadra;
         checkbox.id = `quadra-${quadra}`;
-       checkbox.checked = !isExtinta && Array.from(estado.quadrasSelecionadas).some(sel => {
-    if (sel === quadra) return true;
-    if (quadra.startsWith(sel + "/")) return true;
-    return false;
-});
 
-        
+        // só marca se não for extinta
+        checkbox.checked = !isExtinta && Array.from(estado.quadrasSelecionadas).some(sel => {
+            if (sel === quadra) return true;
+            if (quadra.startsWith(sel + "/")) return true;
+            return false;
+        });
+
         const label = document.createElement("label");
         label.htmlFor = checkbox.id;
-        label.innerHTML = isExtinta ? 
+        label.innerHTML = isExtinta ?
             `<span class="extinta">${quadra} (extinta)</span>` :
-    `${quadra} - ${somaTotal} imóveis`;
+            `${quadra} - ${somaTotal} imóveis`;
 
-        
         label.style.marginLeft = "8px";
         label.style.cursor = "pointer";
-        
-        // Tooltip com informações da quadra
-        label.title = `Quadra ${quadra}: ${somaTotal} imóveis, ${dadosQuadra?.HABITANTES || 0} habitantes`;
-        
+
+        // evento de clique no checkbox
         checkbox.addEventListener("change", () => {
             if (checkbox.checked) {
                 estado.quadrasSelecionadas.add(quadra);
@@ -208,13 +200,31 @@ if (quadras.length === 0) {
                 estado.quadrasSelecionadas.delete(quadra);
             }
             atualizarProgramados();
-            mostrarDetalhesQuadras();
+            atualizarQuadrasSelecionadas();
         });
-        
+
         wrapper.appendChild(checkbox);
         wrapper.appendChild(label);
         listaQuadrasDiv.appendChild(wrapper);
     });
+}
+
+// === FUNÇÃO: MOSTRAR APENAS QUADRAS SELECIONADAS ===
+function atualizarQuadrasSelecionadas() {
+    const textarea = document.getElementById("quadrasEstratificadas");
+    const detalhesDiv = document.getElementById("dadosDetalhes");
+
+    if (estado.quadrasSelecionadas.size === 0) {
+        textarea.value = "";
+        detalhesDiv.innerHTML = ""; // sempre vazio
+        return;
+    }
+
+    // apenas os números das quadras selecionadas
+    textarea.value = Array.from(estado.quadrasSelecionadas).join(", ");
+
+    // detalhes sempre vazio
+    detalhesDiv.innerHTML = "";
 }
 
 // 6. ATUALIZAR RESUMO DE PROGRAMADOS COMPLETO
@@ -397,6 +407,7 @@ document.addEventListener("DOMContentLoaded", function() {
     console.log("Sistema inicializado com sucesso!");
 
 });
+
 
 
 
