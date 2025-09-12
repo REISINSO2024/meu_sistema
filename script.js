@@ -181,10 +181,8 @@ if (quadras.length === 0) {
         checkbox.type = "checkbox";
         checkbox.value = quadra;
         checkbox.id = `quadra-${quadra}`;
-        checkbox.checked = Array.from(estado.quadrasSelecionadas).some(sel => {
-    // Marca se for igual
+       checkbox.checked = !isExtinta && Array.from(estado.quadrasSelecionadas).some(sel => {
     if (sel === quadra) return true;
-    // Marca se for pai: ex "1" marca também "1/1", "1/2"...
     if (quadra.startsWith(sel + "/")) return true;
     return false;
 });
@@ -399,6 +397,7 @@ document.addEventListener("DOMContentLoaded", function() {
     console.log("Sistema inicializado com sucesso!");
 
 });
+
 
 
 
