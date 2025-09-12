@@ -401,7 +401,7 @@ montarListaQuadras();
 atualizarProgramados();
 atualizarQuadrasSelecionadas(); // só mostra a numeração
 
-    }
+    });
     
     if (limparTudoBtn) {
         limparTudoBtn.addEventListener("click", limparTudo);
@@ -410,6 +410,7 @@ atualizarQuadrasSelecionadas(); // só mostra a numeração
     console.log("Sistema inicializado com sucesso!");
 
 });
+
 
 
 
