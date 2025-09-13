@@ -217,11 +217,21 @@ quadras.forEach(quadra => {
     }
 
     // === Checkbox de positiva ===
-    const checkboxPositivo = document.createElement("input");
-    checkboxPositivo.type = "checkbox";
-    checkboxPositivo.value = quadra;
-    checkboxPositivo.id = `positivo-${quadra}`;
-    checkboxPositivo.style.marginLeft = "10px";
+ // === Checkbox de positiva ===
+const checkboxPositivo = document.createElement("input");
+checkboxPositivo.type = "checkbox";
+checkboxPositivo.value = quadra;
+checkboxPositivo.id = `positivo-${quadra}`;
+checkboxPositivo.style.marginLeft = "10px";
+
+// Label "Positiva"
+const labelPositivo = document.createElement("label");
+labelPositivo.htmlFor = checkboxPositivo.id;
+labelPositivo.textContent = "Positiva";
+labelPositivo.style.marginLeft = "4px";
+labelPositivo.style.fontSize = "0.85em";
+labelPositivo.style.color = "#ccc";
+
 
     // só pode marcar positiva se quadra está selecionada
     checkboxPositivo.disabled = !estado.quadrasSelecionadas.has(quadra);
@@ -255,11 +265,13 @@ quadras.forEach(quadra => {
     label.style.marginLeft = "8px";
 
     // monta linha
-    wrapper.appendChild(checkbox);
-    wrapper.appendChild(label);
-    wrapper.appendChild(checkboxPositivo);
-    listaQuadrasDiv.appendChild(wrapper);
+ wrapper.appendChild(checkbox);          // checkbox normal
+wrapper.appendChild(label);             // label da quadra
+wrapper.appendChild(checkboxPositivo);  // checkbox positiva
+wrapper.appendChild(labelPositivo);     // ✅ novo label "Positiva"
+listaQuadrasDiv.appendChild(wrapper);
 });
+
 
 
 }
@@ -488,6 +500,7 @@ if (limparTudoBtn) {
 
 console.log("Sistema inicializado com sucesso!");
 }); // ✅ fechamento do DOMContentLoaded
+
 
 
 
