@@ -7,7 +7,7 @@ let bairros = [];
 let estado = {
     bairroSelecionado: null,
     quadrasDisponiveis: [],
-    quadrasSelecionadas: new Set()
+    quadrasSelecionadas: new Set(),
   quadrasPositivas: new Set(), // ✅ novo
 };
 
@@ -488,6 +488,7 @@ if (limparTudoBtn) {
 
 console.log("Sistema inicializado com sucesso!");
 }); // ✅ fechamento do DOMContentLoaded
+
 
 
 
