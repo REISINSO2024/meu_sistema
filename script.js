@@ -293,31 +293,54 @@ function atualizarQuadrasSelecionadas() {
 
 // 6. ATUALIZAR RESUMO DE PROGRAMADOS COMPLETO
 function atualizarProgramados() {
-    if (!resumoProgramadosDiv) return;
-    
-    if (!estado.bairroSelecionado || estado.quadrasSelecionadas.size === 0) {
-        resumoProgramadosDiv.innerHTML = "<em>Selecione quadras para ver os programados.</em>";
+    const resumoProgramados = document.getElementById("resumoProgramados");
+
+    if (!estado.bairroSelecionado) {
+        resumoProgramados.innerHTML = "<em>Selecione um bairro para ver os programados.</em>";
         return;
     }
-    
+
     const dadosBairro = bairros.filter(b => b.BAIRRO === estado.bairroSelecionado);
-    const totais = calcularTotaisQuadrasSelecionadas(dadosBairro);
-    const programados = totais.TOTAL - totais["AP. ACIMA DO TÉRREO"];
-    
-    resumoProgramadosDiv.innerHTML = `
-        <span><strong>Quadras Selecionadas:</strong> ${estado.quadrasSelecionadas.size}</span>
-        <span><strong>Total de Imóveis:</strong> ${totais.TOTAL}</span>
-        <span><strong>Residências (R):</strong> ${totais.R}</span>
-        <span><strong>Comércios (C):</strong> ${totais.C}</span>
-        <span><strong>Terrenos Baldios (TB):</strong> ${totais.TB}</span>
-        <span><strong>Outros (OU):</strong> ${totais.OU}</span>
-        <span><strong>Pontos Estratégicos (PE):</strong> ${totais.PE}</span>
-        <span><strong>Apartamentos Acima Térreo:</strong> ${totais["AP. ACIMA DO TÉRREO"]}</span>
-        <span><strong>Total de Habitantes:</strong> ${totais.HABITANTES}</span>
-        <span><strong>🏠 Imóveis Programados:</strong> ${programados}</span>
-        <span><strong>🐕 Cães:</strong> ${totais.CÃO}</span>
-        <span><strong>🐈 Gatos:</strong> ${totais.GATO}</span>
-        <span><strong>💧 Depósitos de Água:</strong> ${totais["CAIXAS D'ÁGUA EXISTENTE"] + totais["TANQUE EXISTENTE"] + totais["TAMBOR EXISTENTE"] + totais["CISTERNA EXISTENTE"] + totais["CACIMBA EXISTENTE"]}</span>
+
+    // quadras selecionadas ativas (sem extintas)
+    const quadrasSelecionadasAtivas = Array.from(estado.quadrasSelecionadas).filter(q => {
+        const dadosQuadra = dadosBairro.find(b => b.QT === q);
+        return dadosQuadra && Number(dadosQuadra.TOTAL) > 0;
+    });
+
+    const totalQuadrasSelecionadas = quadrasSelecionadasAtivas.length;
+
+    const totalImoveis = dadosBairro.reduce((acc, cur) => acc + Number(cur.IMOVEIS || 0), 0);
+    const residencias = dadosBairro.reduce((acc, cur) => acc + Number(cur.R || 0), 0);
+    const comercios = dadosBairro.reduce((acc, cur) => acc + Number(cur.C || 0), 0);
+    const terrenos = dadosBairro.reduce((acc, cur) => acc + Number(cur.TB || 0), 0);
+    const outros = dadosBairro.reduce((acc, cur) => acc + Number(cur.OU || 0), 0);
+    const pontosEstrategicos = dadosBairro.reduce((acc, cur) => acc + Number(cur.PE || 0), 0);
+    const apartamentos = dadosBairro.reduce((acc, cur) => acc + Number(cur.AP || 0), 0);
+    const habitantes = dadosBairro.reduce((acc, cur) => acc + Number(cur.HAB || 0), 0);
+    const caes = dadosBairro.reduce((acc, cur) => acc + Number(cur.CAES || 0), 0);
+    const gatos = dadosBairro.reduce((acc, cur) => acc + Number(cur.GATOS || 0), 0);
+    const depositos = dadosBairro.reduce((acc, cur) => acc + Number(cur.DEPOSITOS || 0), 0);
+
+    // programados = só das quadras ativas
+    const imoveisProgramados = dadosBairro
+        .filter(b => quadrasSelecionadasAtivas.includes(b.QT))
+        .reduce((acc, cur) => acc + Number(cur.IMOVEIS || 0), 0);
+
+    resumoProgramados.innerHTML = `
+        <span><strong>Quadras Selecionadas:</strong> ${totalQuadrasSelecionadas}</span>
+        <span><strong>Total de Imóveis:</strong> ${totalImoveis}</span>
+        <span><strong>Residências (R):</strong> ${residencias}</span>
+        <span><strong>Comércios (C):</strong> ${comercios}</span>
+        <span><strong>Terrenos Baldios (TB):</strong> ${terrenos}</span>
+        <span><strong>Outros (OU):</strong> ${outros}</span>
+        <span><strong>Pontos Estratégicos (PE):</strong> ${pontosEstrategicos}</span>
+        <span><strong>Apartamentos Acima Térreo:</strong> ${apartamentos}</span>
+        <span><strong>Total de Habitantes:</strong> ${habitantes}</span>
+        <span>🏠 <strong>Imóveis Programados:</strong> ${imoveisProgramados}</span>
+        <span>🐕 <strong>Cães:</strong> ${caes}</span>
+        <span>🐈 <strong>Gatos:</strong> ${gatos}</span>
+        <span>💧 <strong>Depósitos de Água:</strong> ${depositos}</span>
     `;
 }
 
@@ -492,6 +515,7 @@ if (limparTudoBtn) {
 
 console.log("Sistema inicializado com sucesso!");
 }); // ✅ fechamento do DOMContentLoaded
+
 
 
 
