@@ -170,7 +170,6 @@ function montarListaQuadras() {
         return 0;
     });
 
-    // quadras disponíveis = apenas as ativas (não extintas)
     estado.quadrasDisponiveis = quadras.filter(q => {
         const dadosQuadra = dadosBairro.find(b => b.QT === q);
         return dadosQuadra && Number(dadosQuadra.TOTAL) > 0;
@@ -189,7 +188,7 @@ function montarListaQuadras() {
         const wrapper = document.createElement("div");
         wrapper.className = "quadra-item";
 
-        // === Checkbox de seleção normal ===
+        // === Checkbox normal ===
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.value = quadra;
@@ -205,7 +204,7 @@ function montarListaQuadras() {
                     estado.quadrasSelecionadas.add(quadra);
                 } else {
                     estado.quadrasSelecionadas.delete(quadra);
-                    estado.quadrasPositivas.delete(quadra); // se desmarcar, remove também das positivas
+                    estado.quadrasPositivas.delete(quadra);
                 }
                 atualizarProgramados();
                 atualizarQuadrasSelecionadas();
@@ -213,7 +212,7 @@ function montarListaQuadras() {
             });
         }
 
-        // === Checkbox de positiva ===
+        // === Checkbox positiva ===
         const checkboxPositivo = document.createElement("input");
         checkboxPositivo.type = "checkbox";
         checkboxPositivo.value = quadra;
@@ -255,15 +254,10 @@ function montarListaQuadras() {
         if (isExtinta) {
             label.innerHTML = `<span class="extinta">${quadra} (extinta)</span>`;
         } else {
-            label.innerHTML = `${quadra} <small>(${somaTotal} imóveis)</small>`;
+            label.innerHTML = `<span class="quadra-numero">${quadra}</span> <small>(${somaTotal} imóveis)</small>`;
+            wrapper.classList.add("destacada"); // aplica destaque a todas ativas
         }
 
-        // destaque em laranja quadras com mais de 100 imóveis
-        if (somaTotal > 100 && !isExtinta) {
-            wrapper.classList.add("destacada");
-        }
-
-        // monta linha
         wrapper.appendChild(checkbox);
         wrapper.appendChild(label);
         wrapper.appendChild(checkboxPositivo);
@@ -271,6 +265,7 @@ function montarListaQuadras() {
         listaQuadrasDiv.appendChild(wrapper);
     });
 }
+
 
 
 // === FUNÇÃO: MOSTRAR APENAS QUADRAS SELECIONADAS ===
@@ -497,6 +492,7 @@ if (limparTudoBtn) {
 
 console.log("Sistema inicializado com sucesso!");
 }); // ✅ fechamento do DOMContentLoaded
+
 
 
 
