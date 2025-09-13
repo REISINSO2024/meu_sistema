@@ -303,7 +303,7 @@ function atualizarProgramados() {
 
     const dadosBairro = bairros.filter(b => b.BAIRRO === estado.bairroSelecionado);
 
-    // quadras selecionadas ativas (sem extintas)
+    // Quadras selecionadas ativas (sem extintas)
     const quadrasSelecionadasAtivas = Array.from(estado.quadrasSelecionadas).filter(q => {
         const dadosQuadra = dadosBairro.find(b => b.QT === q);
         return dadosQuadra && Number(dadosQuadra.TOTAL) > 0;
@@ -319,9 +319,6 @@ function atualizarProgramados() {
         return isNaN(num) ? 0 : num;
     };
 
-    // -------------------------------------------------------------
-    // NOVO: As somas agora usam os nomes de propriedades CORRETOS
-    // -------------------------------------------------------------
     const totalImoveis = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.TOTAL || 0), 0);
     const residencias = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.R || 0), 0);
     const comercios = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.C || 0), 0);
@@ -329,19 +326,21 @@ function atualizarProgramados() {
     const outros = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.OU || 0), 0);
     const pontosEstrategicos = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.PE || 0), 0);
     
-    // Nomes de propriedades corrigidos para as somas
+    // Nomes de propriedades corrigidos
     const apartamentos = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur['AP. ACIMA DO TÉRREO'] || 0), 0);
     const habitantes = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.HABITANTES || 0), 0);
     const caes = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.CÃO || 0), 0);
     const gatos = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.GATO || 0), 0);
     
-    // Depósitos de água precisam de uma soma manual, pois são vários campos
+    // Depósitos de água
     const depositos = dadosQuadrasSelecionadas.reduce((acc, cur) => {
         return acc + getNumero(cur['TANQUE EXISTENTE']) + getNumero(cur['TAMBOR EXISTENTE']) + getNumero(cur['CISTERNA EXISTENTE']) + getNumero(cur['CACIMBA EXISTENTE']) + getNumero(cur["CAIXAS D'ÁGUA EXISTENTE"]);
     }, 0);
 
-    // O cálculo de imoveisProgramados também precisa do nome de propriedade correto
-    const imoveisProgramados = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.IMOVEIS || 0), 0);
+    // -------------------------------------------------------------
+    // NOVO: Cálculo para Imóveis Programados
+    // -------------------------------------------------------------
+    const imoveisProgramados = totalImoveis - apartamentos;
 
     resumoProgramados.innerHTML = `
         <span><strong>Quadras Selecionadas:</strong> ${totalQuadrasSelecionadas}</span>
@@ -531,6 +530,7 @@ if (limparTudoBtn) {
 
 console.log("Sistema inicializado com sucesso!");
 }); // ✅ fechamento do DOMContentLoaded
+
 
 
 
