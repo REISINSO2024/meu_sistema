@@ -156,125 +156,122 @@ function montarListaQuadras() {
         return;
     }
 
- const dadosBairro = bairros.filter(b => b.BAIRRO === estado.bairroSelecionado);
+    const dadosBairro = bairros.filter(b => b.BAIRRO === estado.bairroSelecionado);
 
-// pega todas as quadras e aplica a ordenação pai/filho
-const quadras = [...new Set(dadosBairro.map(item => item.QT))].sort((a, b) => {
-    const [paiA, filhoA] = a.split("/").map(Number);
-    const [paiB, filhoB] = b.split("/").map(Number);
+    // pega todas as quadras e aplica a ordenação pai/filho
+    const quadras = [...new Set(dadosBairro.map(item => item.QT))].sort((a, b) => {
+        const [paiA, filhoA] = a.split("/").map(Number);
+        const [paiB, filhoB] = b.split("/").map(Number);
 
-    if (paiA !== paiB) return paiA - paiB;
-    if (filhoA == null && filhoB != null) return -1;
-    if (filhoA != null && filhoB == null) return 1;
-    if (filhoA != null && filhoB != null) return filhoA - filhoB;
-    return 0;
-});
+        if (paiA !== paiB) return paiA - paiB;
+        if (filhoA == null && filhoB != null) return -1;
+        if (filhoA != null && filhoB == null) return 1;
+        if (filhoA != null && filhoB != null) return filhoA - filhoB;
+        return 0;
+    });
 
-// quadras disponíveis = apenas as ativas (não extintas)
-estado.quadrasDisponiveis = quadras.filter(q => {
-    const dadosQuadra = dadosBairro.find(b => b.QT === q);
-    return dadosQuadra && Number(dadosQuadra.TOTAL) > 0;
-});
-
-
-    estado.quadrasDisponiveis = quadras;
+    // quadras disponíveis = apenas as ativas (não extintas)
+    estado.quadrasDisponiveis = quadras.filter(q => {
+        const dadosQuadra = dadosBairro.find(b => b.QT === q);
+        return dadosQuadra && Number(dadosQuadra.TOTAL) > 0;
+    });
 
     if (quadras.length === 0) {
         listaQuadrasDiv.innerHTML = "<em>Nenhuma quadra encontrada.</em>";
         return;
     }
 
-quadras.forEach(quadra => {
-    const dadosQuadra = dadosBairro.find(b => b.QT === quadra);
-    const somaTotal = Number(dadosQuadra?.TOTAL || 0);
-    const isExtinta = somaTotal === 0;
+    quadras.forEach(quadra => {
+        const dadosQuadra = dadosBairro.find(b => b.QT === quadra);
+        const somaTotal = Number(dadosQuadra?.TOTAL || 0);
+        const isExtinta = somaTotal === 0;
 
-    const wrapper = document.createElement("div");
-    wrapper.className = "quadra-item";
+        const wrapper = document.createElement("div");
+        wrapper.className = "quadra-item";
 
-    // === Checkbox de seleção normal ===
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.value = quadra;
-    checkbox.id = `quadra-${quadra}`;
+        // === Checkbox de seleção normal ===
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = quadra;
+        checkbox.id = `quadra-${quadra}`;
 
-    if (isExtinta) {
-        checkbox.disabled = true;
-    } else {
-        checkbox.checked = Array.from(estado.quadrasSelecionadas).includes(quadra);
+        if (isExtinta) {
+            checkbox.disabled = true;
+        } else {
+            checkbox.checked = Array.from(estado.quadrasSelecionadas).includes(quadra);
 
-        checkbox.addEventListener("change", () => {
-            if (checkbox.checked) {
-                estado.quadrasSelecionadas.add(quadra);
+            checkbox.addEventListener("change", () => {
+                if (checkbox.checked) {
+                    estado.quadrasSelecionadas.add(quadra);
+                } else {
+                    estado.quadrasSelecionadas.delete(quadra);
+                    estado.quadrasPositivas.delete(quadra); // se desmarcar, remove também das positivas
+                }
+                atualizarProgramados();
+                atualizarQuadrasSelecionadas();
+                atualizarQuadrasPositivas();
+            });
+        }
+
+        // === Checkbox de positiva ===
+        const checkboxPositivo = document.createElement("input");
+        checkboxPositivo.type = "checkbox";
+        checkboxPositivo.value = quadra;
+        checkboxPositivo.id = `positivo-${quadra}`;
+        checkboxPositivo.style.marginLeft = "10px";
+
+        const labelPositivo = document.createElement("label");
+        labelPositivo.htmlFor = checkboxPositivo.id;
+        labelPositivo.textContent = "Positiva";
+        labelPositivo.style.marginLeft = "4px";
+        labelPositivo.style.fontSize = "0.85em";
+        labelPositivo.style.color = "#ccc";
+
+        checkboxPositivo.disabled = !estado.quadrasSelecionadas.has(quadra);
+        checkboxPositivo.checked = estado.quadrasPositivas.has(quadra);
+
+        checkboxPositivo.addEventListener("change", () => {
+            if (checkboxPositivo.checked) {
+                estado.quadrasPositivas.add(quadra);
             } else {
-                estado.quadrasSelecionadas.delete(quadra);
-                estado.quadrasPositivas.delete(quadra); // se desmarcar, remove também das positivas
+                estado.quadrasPositivas.delete(quadra);
             }
-            atualizarProgramados();
-            atualizarQuadrasSelecionadas();
             atualizarQuadrasPositivas();
         });
-    }
 
-    // === Checkbox de positiva ===
- // === Checkbox de positiva ===
-const checkboxPositivo = document.createElement("input");
-checkboxPositivo.type = "checkbox";
-checkboxPositivo.value = quadra;
-checkboxPositivo.id = `positivo-${quadra}`;
-checkboxPositivo.style.marginLeft = "10px";
+        checkbox.addEventListener("change", () => {
+            checkboxPositivo.disabled = !checkbox.checked;
+            if (!checkbox.checked) {
+                checkboxPositivo.checked = false;
+                estado.quadrasPositivas.delete(quadra);
+                atualizarQuadrasPositivas();
+            }
+        });
 
-// Label "Positiva"
-const labelPositivo = document.createElement("label");
-labelPositivo.htmlFor = checkboxPositivo.id;
-labelPositivo.textContent = "Positiva";
-labelPositivo.style.marginLeft = "4px";
-labelPositivo.style.fontSize = "0.85em";
-labelPositivo.style.color = "#ccc";
+        // === Label da quadra ===
+        const label = document.createElement("label");
+        label.htmlFor = checkbox.id;
 
-
-    // só pode marcar positiva se quadra está selecionada
-    checkboxPositivo.disabled = !estado.quadrasSelecionadas.has(quadra);
-    checkboxPositivo.checked = estado.quadrasPositivas.has(quadra);
-
-    checkboxPositivo.addEventListener("change", () => {
-        if (checkboxPositivo.checked) {
-            estado.quadrasPositivas.add(quadra);
+        if (isExtinta) {
+            label.innerHTML = `<span class="extinta">${quadra} (extinta)</span>`;
         } else {
-            estado.quadrasPositivas.delete(quadra);
+            label.innerHTML = `${quadra} <small>(${somaTotal} imóveis)</small>`;
         }
-        atualizarQuadrasPositivas();
-    });
 
-    // quando marcar quadra normal, habilita ou desabilita positiva
-    checkbox.addEventListener("change", () => {
-        checkboxPositivo.disabled = !checkbox.checked;
-        if (!checkbox.checked) {
-            checkboxPositivo.checked = false;
-            estado.quadrasPositivas.delete(quadra);
-            atualizarQuadrasPositivas();
+        // destaque em laranja quadras com mais de 100 imóveis
+        if (somaTotal > 100 && !isExtinta) {
+            wrapper.classList.add("destacada");
         }
+
+        // monta linha
+        wrapper.appendChild(checkbox);
+        wrapper.appendChild(label);
+        wrapper.appendChild(checkboxPositivo);
+        wrapper.appendChild(labelPositivo);
+        listaQuadrasDiv.appendChild(wrapper);
     });
-
-    // === Label ===
-    const label = document.createElement("label");
-    label.htmlFor = checkbox.id;
-    label.innerHTML = isExtinta
-        ? `<span class="extinta">${quadra} (extinta)</span>`
-        : `${quadra} - ${somaTotal} imóveis`;
-    label.style.marginLeft = "8px";
-
-    // monta linha
- wrapper.appendChild(checkbox);          // checkbox normal
-wrapper.appendChild(label);             // label da quadra
-wrapper.appendChild(checkboxPositivo);  // checkbox positiva
-wrapper.appendChild(labelPositivo);     // ✅ novo label "Positiva"
-listaQuadrasDiv.appendChild(wrapper);
-});
-
-
-
 }
+
 
 // === FUNÇÃO: MOSTRAR APENAS QUADRAS SELECIONADAS ===
 function atualizarQuadrasSelecionadas() {
@@ -500,6 +497,7 @@ if (limparTudoBtn) {
 
 console.log("Sistema inicializado com sucesso!");
 }); // ✅ fechamento do DOMContentLoaded
+
 
 
 
