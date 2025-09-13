@@ -475,16 +475,33 @@ header h1 {
 }
 
 /* Ajustes específicos para a busca avançada */
+/* Ajustes específicos para a busca avançada */
 #botaoBusca, #limparBusca {
     width: auto;
     padding: 10px 20px;
     font-size: 14px;
     margin-top: 5px;
     display: inline-block;
-}</style>
+}
+
+/* 🔧 Ajuste para igualar a altura das caixas na linha */
+.main-grid {
+    display: flex;              /* muda de grid para flex */
+    gap: 20px;
+    align-items: stretch;       /* estica os filhos igualmente */
+}
+
+/* Cada .box dentro da grid ocupa 1/3 */
+.main-grid .box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+</style>
 </head>
 <body>
 <header>
+
           <h1>ESTRATIFICAÇÃO DE ÁREAS - DTE VI 2025</h1>
     </header>
     
@@ -666,6 +683,7 @@ header h1 {
 
 </body>
 </html>
+
 
 
 
