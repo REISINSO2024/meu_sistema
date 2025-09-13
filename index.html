@@ -497,7 +497,41 @@ header h1 {
     display: flex;
     flex-direction: column;
 }
-</style>
+/* Desktop: manter colunas lado a lado e mesma altura */
+@media (min-width: 769px) {
+    .main-grid {
+        display: flex;
+        gap: 20px;
+        align-items: stretch; /* 🔑 faz as boxes ficarem da mesma altura */
+    }
+
+    .main-grid .box {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #listaQuadras {
+        flex: 1;            /* ocupa todo espaço vertical da box */
+        min-height: 400px;  /* garante altura mínima */
+        overflow-y: auto;   /* scroll se passar */
+    }
+}
+
+/* Mobile: volta para grid empilhado normal */
+@media (max-width: 768px) {
+    .main-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    #listaQuadras {
+        max-height: 250px;  /* altura menor no celular */
+    }
+}
+
+ 
+ </style>
 </head>
 <body>
 <header>
@@ -683,6 +717,7 @@ header h1 {
 
 </body>
 </html>
+
 
 
 
