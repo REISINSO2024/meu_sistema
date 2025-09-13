@@ -8,6 +8,7 @@ let estado = {
     bairroSelecionado: null,
     quadrasDisponiveis: [],
     quadrasSelecionadas: new Set()
+  quadrasPositivas: new Set(), // ✅ novo
 };
 
 // --- ELEMENTOS DO DOM ---
@@ -183,7 +184,7 @@ estado.quadrasDisponiveis = quadras.filter(q => {
         return;
     }
 
-  quadras.forEach(quadra => {
+quadras.forEach(quadra => {
     const dadosQuadra = dadosBairro.find(b => b.QT === quadra);
     const somaTotal = Number(dadosQuadra?.TOTAL || 0);
     const isExtinta = somaTotal === 0;
@@ -191,47 +192,75 @@ estado.quadrasDisponiveis = quadras.filter(q => {
     const wrapper = document.createElement("div");
     wrapper.className = "quadra-item";
 
+    // === Checkbox de seleção normal ===
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.value = quadra;
     checkbox.id = `quadra-${quadra}`;
 
     if (isExtinta) {
-        // quadras extintas não podem ser selecionadas
         checkbox.disabled = true;
     } else {
-        // só marca se não for extinta
-        checkbox.checked = Array.from(estado.quadrasSelecionadas).some(sel => {
-            if (sel === quadra) return true;
-            if (quadra.startsWith(sel + "/")) return true;
-            return false;
-        });
+        checkbox.checked = Array.from(estado.quadrasSelecionadas).includes(quadra);
 
-        // evento de clique no checkbox (só para ativas)
         checkbox.addEventListener("change", () => {
             if (checkbox.checked) {
                 estado.quadrasSelecionadas.add(quadra);
             } else {
                 estado.quadrasSelecionadas.delete(quadra);
+                estado.quadrasPositivas.delete(quadra); // se desmarcar, remove também das positivas
             }
             atualizarProgramados();
             atualizarQuadrasSelecionadas();
+            atualizarQuadrasPositivas();
         });
     }
 
+    // === Checkbox de positiva ===
+    const checkboxPositivo = document.createElement("input");
+    checkboxPositivo.type = "checkbox";
+    checkboxPositivo.value = quadra;
+    checkboxPositivo.id = `positivo-${quadra}`;
+    checkboxPositivo.style.marginLeft = "10px";
+
+    // só pode marcar positiva se quadra está selecionada
+    checkboxPositivo.disabled = !estado.quadrasSelecionadas.has(quadra);
+    checkboxPositivo.checked = estado.quadrasPositivas.has(quadra);
+
+    checkboxPositivo.addEventListener("change", () => {
+        if (checkboxPositivo.checked) {
+            estado.quadrasPositivas.add(quadra);
+        } else {
+            estado.quadrasPositivas.delete(quadra);
+        }
+        atualizarQuadrasPositivas();
+    });
+
+    // quando marcar quadra normal, habilita ou desabilita positiva
+    checkbox.addEventListener("change", () => {
+        checkboxPositivo.disabled = !checkbox.checked;
+        if (!checkbox.checked) {
+            checkboxPositivo.checked = false;
+            estado.quadrasPositivas.delete(quadra);
+            atualizarQuadrasPositivas();
+        }
+    });
+
+    // === Label ===
     const label = document.createElement("label");
     label.htmlFor = checkbox.id;
     label.innerHTML = isExtinta
         ? `<span class="extinta">${quadra} (extinta)</span>`
         : `${quadra} - ${somaTotal} imóveis`;
-
     label.style.marginLeft = "8px";
-    label.style.cursor = isExtinta ? "not-allowed" : "pointer";
 
+    // monta linha
     wrapper.appendChild(checkbox);
     wrapper.appendChild(label);
+    wrapper.appendChild(checkboxPositivo);
     listaQuadrasDiv.appendChild(wrapper);
 });
+
 
 }
 
@@ -319,7 +348,26 @@ function calcularTotaisQuadrasSelecionadas(dadosBairro) {
     
     return totais;
 }
+function atualizarQuadrasPositivas() {
+    const textarea = document.getElementById("quadrasPositivas");
+    textarea.value = Array.from(estado.quadrasPositivas).join(", ");
+}
 
+function limparTudo() {
+    estado.bairroSelecionado = null;
+    estado.quadrasSelecionadas.clear();
+    estado.quadrasPositivas.clear(); // ✅ limpa positivas também
+
+    // limpa campos da tela
+    document.getElementById("quadrasEstratificadas").value = "";
+    document.getElementById("quadrasPositivas").value = ""; // ✅ limpa textarea
+    document.getElementById("dadosDetalhes").innerHTML = "";
+
+    // atualiza telas
+    montarListaQuadras();
+    montarResumoGeral();
+    atualizarProgramados();
+}
 
 // 8. MOSTRAR DETALHES DAS QUADRAS SELECIONADAS
 function mostrarDetalhesQuadras() {
@@ -440,6 +488,7 @@ if (limparTudoBtn) {
 
 console.log("Sistema inicializado com sucesso!");
 }); // ✅ fechamento do DOMContentLoaded
+
 
 
 
