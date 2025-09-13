@@ -308,6 +308,11 @@ function atualizarProgramados() {
         return dadosQuadra && Number(dadosQuadra.TOTAL) > 0;
     });
 
+    // -------------------------------------------------------------
+    // NOVO: Filtrar os dados para incluir SOMENTE as quadras selecionadas
+    // -------------------------------------------------------------
+    const dadosQuadrasSelecionadas = dadosBairro.filter(b => quadrasSelecionadasAtivas.includes(b.QT));
+
     const totalQuadrasSelecionadas = quadrasSelecionadasAtivas.length;
 
     // Função auxiliar para converter para número de forma segura
@@ -316,19 +321,23 @@ function atualizarProgramados() {
         return isNaN(num) ? 0 : num;
     };
 
-    const totalImoveis = dadosBairro.reduce((acc, cur) => acc + getNumero(cur.IMOVEIS || 0), 0);
-    const residencias = dadosBairro.reduce((acc, cur) => acc + getNumero(cur.R || 0), 0);
-    const comercios = dadosBairro.reduce((acc, cur) => acc + getNumero(cur.C || 0), 0);
-    const terrenos = dadosBairro.reduce((acc, cur) => acc + getNumero(cur.TB || 0), 0);
-    const outros = dadosBairro.reduce((acc, cur) => acc + getNumero(cur.OU || 0), 0);
-    const pontosEstrategicos = dadosBairro.reduce((acc, cur) => acc + getNumero(cur.PE || 0), 0);
-    const apartamentos = dadosBairro.reduce((acc, cur) => acc + getNumero(cur.AP || 0), 0);
-    const habitantes = dadosBairro.reduce((acc, cur) => acc + getNumero(cur.HAB || 0), 0);
-    const caes = dadosBairro.reduce((acc, cur) => acc + getNumero(cur.CAES || 0), 0);
-    const gatos = dadosBairro.reduce((acc, cur) => acc + getNumero(cur.GATOS || 0), 0);
-    const depositos = dadosBairro.reduce((acc, cur) => acc + getNumero(cur.DEPOSITOS || 0), 0);
+    // -------------------------------------------------------------
+    // NOVO: As somas agora usam 'dadosQuadrasSelecionadas'
+    // -------------------------------------------------------------
+    const totalImoveis = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.TOTAL || 0), 0);
+    const residencias = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.R || 0), 0);
+    const comercios = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.C || 0), 0);
+    const terrenos = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.TB || 0), 0);
+    const outros = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.OU || 0), 0);
+    const pontosEstrategicos = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.PE || 0), 0);
+    const apartamentos = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.AP || 0), 0);
+    const habitantes = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.HAB || 0), 0);
+    const caes = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.CAES || 0), 0);
+    const gatos = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.GATOS || 0), 0);
+    const depositos = dadosQuadrasSelecionadas.reduce((acc, cur) => acc + getNumero(cur.DEPOSITOS || 0), 0);
 
-    // programados = só das quadras ativas
+    // O cálculo de imoveisProgramados já estava correto,
+    // pois ele já filtrava por quadras selecionadas.
     const imoveisProgramados = dadosBairro
         .filter(b => quadrasSelecionadasAtivas.includes(b.QT))
         .reduce((acc, cur) => acc + getNumero(cur.IMOVEIS || 0), 0);
@@ -521,6 +530,7 @@ if (limparTudoBtn) {
 
 console.log("Sistema inicializado com sucesso!");
 }); // ✅ fechamento do DOMContentLoaded
+
 
 
 
